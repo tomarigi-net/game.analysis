@@ -4,88 +4,107 @@
     <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests; connect-src 'self' https://game-analysis.onrender.com;">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>心理ゲーム・アナライザー</title>
+    <title>心理ゲーム・アナライザー Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         :root {
-            --game-main: #f0f4ff;
-            --game-accent: #667eea;
-            --game-dark: #2d3748;
+            --game-main: #f8fafc;
+            --game-accent: #6366f1;
+            --game-dark: #1e293b;
         }
-        body { background-color: var(--game-main); color: var(--game-dark); }
+        body { background-color: var(--game-main); color: var(--game-dark); font-family: 'sans-serif'; }
         .game-card { background: white; border: 1px solid #e2e8f0; border-radius: 1.5rem; }
-        .game-tag {
-            background-color: #ebf4ff;
-            color: #4c51bf;
-            padding: 4px 12px;
-            border-radius: 9999px;
-            font-weight: bold;
-            font-size: 0.875rem;
-            border: 1px solid #bee3f8;
-        }
+        .ok-box { transition: all 0.3s ease; }
+        .ok-badge { padding: 2px 8px; border-radius: 6px; font-weight: bold; font-size: 0.75rem; }
+        .badge-ok { background: #dcfce7; color: #166534; }
+        .badge-not-ok { background: #fee2e2; color: #991b1b; }
     </style>
 </head>
 <body class="min-h-screen pb-12">
 
     <div class="max-w-2xl mx-auto px-4 py-10">
         <header class="text-center mb-10">
-            <h1 class="text-3xl font-bold text-indigo-800">心理ゲーム・アナライザー</h1>
-            <p class="text-indigo-600 mt-2">繰り返される「嫌なパターン」の先読みと回避。</p>
+            <h1 class="text-3xl font-bold text-indigo-900 leading-tight">心理ゲーム・アナライザー</h1>
+            <p class="text-indigo-600 mt-2 font-medium">「OK牧場」の変遷から、隠れたシナリオを暴く</p>
         </header>
 
-        <div id="input-section" class="game-card shadow-sm p-8 space-y-6">
+        <div id="input-section" class="game-card shadow-xl p-8 space-y-6 border-t-4 border-indigo-500">
             <div>
-                <label class="block text-lg font-semibold mb-3">今、どんなやり取りや悩みがありますか？</label>
-                <textarea id="user-thought" class="w-full h-32 p-4 border border-indigo-100 rounded-xl focus:ring-2 focus:ring-indigo-400 focus:border-transparent outline-none bg-indigo-50/30 transition" placeholder="例：友人に相談したのに、アドバイスされるとイライラして『でも…』と言ってしまう。"></textarea>
+                <label class="block text-lg font-bold mb-3 text-slate-700">今、どんなやり取りがありましたか？</label>
+                <textarea id="user-thought" class="w-full h-32 p-4 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-400 focus:border-transparent outline-none bg-slate-50 transition placeholder-slate-400" placeholder="例：良かれと思ってアドバイスしたのに、相手が不機嫌になり、最後は私もイライラしてしまった。"></textarea>
             </div>
 
-            <button onclick="analyzeThought()" id="submit-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-2xl transition-all shadow-lg shadow-indigo-100 text-lg">
-                パターンの先読みを開始
+            <button onclick="analyzeThought()" id="submit-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-2xl transition-all shadow-lg shadow-indigo-200 text-lg">
+                深層心理を分析する
             </button>
         </div>
 
         <div id="loading" class="hidden text-center py-16">
             <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-indigo-500 border-t-transparent"></div>
-            <p class="mt-6 text-indigo-700 font-medium">無意識のパターンを解析中...</p>
+            <p class="mt-6 text-indigo-800 font-bold">無意識のポジション遷移を解析中...</p>
         </div>
 
         <div id="result-section" class="hidden space-y-6 mt-8">
-            <div class="game-card p-6 shadow-sm border-l-8 border-indigo-500">
-                <h3 class="text-xs font-bold text-indigo-400 uppercase tracking-widest mb-2">特定された心理ゲーム</h3>
-                <div id="game-name" class="text-xl font-bold text-indigo-800 mb-2"></div>
-                <div id="current-stage" class="text-sm text-slate-600 italic"></div>
-            </div>
-
-            <div class="bg-rose-500 text-white rounded-3xl p-8 shadow-md">
-                <h3 class="text-rose-100 text-sm font-bold uppercase mb-2">⚠️ このまま進んだ場合の結末</h3>
-                <p id="future-prediction" class="text-xl leading-relaxed font-medium"></p>
+            
+            <div class="game-card p-6 shadow-md border-l-8 border-indigo-600">
+                <h3 class="text-xs font-bold text-indigo-400 uppercase tracking-widest mb-1">特定された心理ゲーム</h3>
+                <div id="game-name" class="text-2xl font-black text-indigo-900 mb-2"></div>
+                <p id="game-definition" class="text-sm text-slate-500 leading-relaxed italic border-t pt-2"></p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="bg-white border border-indigo-100 rounded-2xl p-5">
-                    <h3 class="font-bold text-indigo-600 mb-2 flex items-center">🔍 隠された本音</h3>
-                    <p id="hidden-motive" class="text-slate-600 text-sm leading-relaxed"></p>
+                <div class="game-card p-5 border-blue-100 bg-blue-50/30">
+                    <h4 class="text-blue-700 font-bold text-sm mb-3 flex items-center">
+                        <span class="mr-2">▶</span> ゲーム開始時の位置
+                    </h4>
+                    <div class="flex justify-between items-center mb-2">
+                        <span id="pos-start-self" class="ok-badge"></span>
+                        <span class="text-slate-400">/</span>
+                        <span id="pos-start-others" class="ok-badge"></span>
+                    </div>
+                    <p id="pos-start-desc" class="text-xs text-slate-600 leading-tight"></p>
                 </div>
-                <div class="bg-indigo-50 border border-indigo-200 rounded-2xl p-5">
-                    <h3 class="font-bold text-indigo-700 mb-2 flex items-center">🛡️ ゲームを降りる一言</h3>
-                    <p id="exit-strategy" class="text-indigo-900 font-bold text-sm leading-relaxed"></p>
+                <div class="game-card p-5 border-rose-100 bg-rose-50/30">
+                    <h4 class="text-rose-700 font-bold text-sm mb-3 flex items-center">
+                        <span class="mr-2">▼</span> 予測される結末の位置
+                    </h4>
+                    <div class="flex justify-between items-center mb-2">
+                        <span id="pos-end-self" class="ok-badge"></span>
+                        <span class="text-slate-400">/</span>
+                        <span id="pos-end-others" class="ok-badge"></span>
+                    </div>
+                    <p id="pos-end-desc" class="text-xs text-slate-600 leading-tight"></p>
                 </div>
             </div>
 
-            <button onclick="location.reload()" class="w-full py-4 text-indigo-500 hover:text-indigo-700 font-medium transition">
+            <div class="bg-slate-900 text-white rounded-3xl p-8 shadow-2xl relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-4 opacity-10 text-6xl font-black">!</div>
+                <h3 class="text-indigo-400 text-sm font-bold uppercase mb-3">⚠️ このまま進んだ場合の「破綻」</h3>
+                <p id="prediction" class="text-xl leading-relaxed font-bold text-white"></p>
+            </div>
+
+            <div class="grid grid-cols-1 gap-4">
+                <div class="bg-white border border-slate-200 rounded-2xl p-6">
+                    <h3 class="font-bold text-slate-800 mb-2 flex items-center">
+                        <span class="mr-2 text-indigo-500">🔍</span> 無意識の真実（利得）
+                    </h3>
+                    <p id="hidden-motive" class="text-slate-600 text-base leading-relaxed"></p>
+                </div>
+                <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-6">
+                    <h3 class="font-bold text-emerald-800 mb-2 flex items-center">
+                        <span class="mr-2">💡</span> 自律的な大人としての回避策
+                    </h3>
+                    <p id="advice" class="text-emerald-900 font-bold text-base leading-relaxed"></p>
+                </div>
+            </div>
+
+            <button onclick="location.reload()" class="w-full py-6 text-slate-400 hover:text-indigo-600 font-bold transition-all">
                 ← 別のパターンを分析する
             </button>
         </div>
     </div>
 
     <script>
-        // ページ読み込み時にバックエンドを起動
-        window.addEventListener('DOMContentLoaded', () => {
-            fetch('https://cognitive-therapy.onrender.com/')
-                .then(r => console.log('Wake-up call success'))
-                .catch(e => console.log('Wake-up failed'));
-        });
-
         async function analyzeThought() {
             const thought = document.getElementById('user-thought').value;
             if (!thought) return alert('やり取りの内容を入力してください');
@@ -103,7 +122,8 @@
                 const data = await response.json();
                 displayResults(data);
             } catch (error) {
-                alert("解析エラーが発生しました。");
+                console.error(error);
+                alert("解析中にエラーが発生しました。");
                 document.getElementById('input-section').classList.remove('hidden');
                 document.getElementById('loading').classList.add('hidden');
             }
@@ -113,13 +133,33 @@
             document.getElementById('loading').classList.add('hidden');
             document.getElementById('result-section').classList.remove('hidden');
 
+            // JSONパース（文字列で返ってきた場合への対応）
             const res = (typeof data === 'string') ? JSON.parse(data) : data;
 
-            document.getElementById('game-name').innerText = res.game_name || '不明なパターン';
-            document.getElementById('current-stage').innerText = "現在のフェーズ: " + (res.current_stage || '-');
-            document.getElementById('future-prediction').innerText = res.future_prediction || '-';
-            document.getElementById('hidden-motive').innerText = res.hidden_motive || '-';
-            document.getElementById('exit-strategy').innerText = res.exit_strategy || '-';
+            // 基本情報
+            document.getElementById('game-name').innerText = res.game_name;
+            document.getElementById('game-definition').innerText = res.definition;
+            
+            // OK牧場：開始
+            renderBadge('pos-start-self', res.position_start.self);
+            renderBadge('pos-start-others', res.position_start.others);
+            document.getElementById('pos-start-desc').innerText = res.position_start.description;
+
+            // OK牧場：結末
+            renderBadge('pos-end-self', res.position_end.self);
+            renderBadge('pos-end-others', res.position_end.others);
+            document.getElementById('pos-end-desc').innerText = res.position_end.description;
+
+            // 詳細
+            document.getElementById('prediction').innerText = res.prediction;
+            document.getElementById('hidden-motive').innerText = res.hidden_motive;
+            document.getElementById('advice').innerText = res.advice;
+        }
+
+        function renderBadge(id, text) {
+            const el = document.getElementById(id);
+            el.innerText = text;
+            el.className = 'ok-badge ' + (text.includes('not OK') ? 'badge-not-ok' : 'badge-ok');
         }
     </script>
 </body>
