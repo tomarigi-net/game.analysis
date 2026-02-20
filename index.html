@@ -25,12 +25,12 @@
     <div class="max-w-2xl mx-auto px-4 py-10">
         <header class="text-center mb-10">
             <h1 class="text-3xl font-bold text-indigo-900 leading-tight">心理ゲーム・アナライザー</h1>
-            <p class="text-indigo-600 mt-2 font-medium">「OK牧場」の変遷から、隠れたシナリオを暴く</p>
+            <p class="text-indigo-600 mt-2 font-medium">「OK <-> not OK」の変遷から、隠されたシナリオを暴く</p>
         </header>
 
         <div id="input-section" class="game-card shadow-xl p-8 space-y-6 border-t-4 border-indigo-500">
             <div>
-                <label class="block text-lg font-bold mb-3 text-slate-700">今、どんなやり取りがありましたか？</label>
+                <label class="block text-lg font-bold mb-3 text-slate-700">今、どんなやり取りがありましたか？（出来事、その時に思ったことなど、少し細かい方が良いです）</label>
                 <textarea id="user-thought" class="w-full h-32 p-4 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-400 focus:border-transparent outline-none bg-slate-50 transition placeholder-slate-400" placeholder="例：良かれと思ってアドバイスしたのに、相手が不機嫌になり、最後は私もイライラしてしまった。"></textarea>
             </div>
 
@@ -38,7 +38,7 @@
                 <span class="text-amber-500 mt-0.5 text-lg">⚠️</span>
                 <div class="text-[11px] md:text-xs text-amber-900 leading-relaxed">
                     <p class="font-bold mb-1 underline">ご利用上の注意</p>
-                    AI側の安全機能により回答が制限される場合があります。その際は表現を調整して再度お試しください。
+                    深刻なリスク（自傷・他害・公序良俗に反する内容等）を伴う入力に対しては、AI側の安全機能が回答をブロックすることがあり、エラーの原因となります。これを繰り返すとAPIの制限によりアプリが使用できなくなる恐れがあるため、中断メッセージが表示された場合は、表現をマイルドにするなど入力を適切に調整してください。
                 </div>
             </div>
 
@@ -61,7 +61,7 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="game-card p-5 border-blue-100 bg-blue-50/30">
-                    <h4 class="text-blue-700 font-bold text-sm mb-3 flex items-center"><span class="mr-2">▶</span> 開始時の位置</h4>
+                    <h4 class="text-blue-700 font-bold text-sm mb-3 flex items-center"><span class="mr-2">▶</span> 開始時の立ち位置 (自分 / 相手)</h4>
                     <div class="flex justify-between items-center mb-2">
                         <span id="pos-start-self" class="ok-badge"></span>
                         <span class="text-slate-400">/</span>
@@ -70,7 +70,7 @@
                     <p id="pos-start-desc" class="text-xs text-slate-600 leading-tight"></p>
                 </div>
                 <div class="game-card p-5 border-rose-100 bg-rose-50/30">
-                    <h4 class="text-rose-700 font-bold text-sm mb-3 flex items-center"><span class="mr-2">▼</span> 結末の位置</h4>
+                    <h4 class="text-rose-700 font-bold text-sm mb-3 flex items-center"><span class="mr-2">▼</span> 結末の立ち位置 (自分 / 相手)</h4>
                     <div class="flex justify-between items-center mb-2">
                         <span id="pos-end-self" class="ok-badge"></span>
                         <span class="text-slate-400">/</span>
@@ -82,17 +82,17 @@
 
             <div id="prediction-box" class="bg-slate-900 text-white rounded-3xl p-8 shadow-2xl relative overflow-hidden">
                 <div class="absolute top-0 right-0 p-4 opacity-10 text-6xl font-black">!</div>
-                <h3 id="prediction-label" class="text-indigo-400 text-sm font-bold uppercase mb-3">⚠️ このまま進んだ場合の「破綻」</h3>
+                <h3 id="prediction-label" class="text-indigo-400 text-sm font-bold uppercase mb-3">⚠️ このまま進んだ場合の「破綻」の結末</h3>
                 <p id="prediction" class="text-xl leading-relaxed font-bold text-white"></p>
             </div>
 
             <div class="grid grid-cols-1 gap-4">
                 <div class="bg-white border border-slate-200 rounded-2xl p-6">
-                    <h3 class="font-bold text-slate-800 mb-2 flex items-center"><span class="mr-2 text-indigo-500">🔍</span> 無意識の真実（利得）</h3>
+                    <h3 class="font-bold text-slate-800 mb-2 flex items-center"><span class="mr-2 text-indigo-500">🔍</span> 無意識の真実（心理社会的利得）</h3>
                     <p id="hidden-motive" class="text-slate-600 text-base leading-relaxed"></p>
                 </div>
                 <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-6">
-                    <h3 class="font-bold text-emerald-800 mb-2 flex items-center"><span class="mr-2">💡</span> 回避策</h3>
+                    <h3 class="font-bold text-emerald-800 mb-2 flex items-center"><span class="mr-2">💡</span> この結末を回避するには...</h3>
                     <p id="advice" class="text-emerald-900 font-bold text-base leading-relaxed"></p>
                 </div>
             </div>
