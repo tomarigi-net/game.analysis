@@ -20,6 +20,7 @@ def get_prompt():
 
 SYSTEM_PROMPT = get_prompt()
 
+
 @app.route('/', methods=['GET', 'POST', 'OPTIONS'], strict_slashes=False)
 def home():
     if request.method == 'OPTIONS':
@@ -28,13 +29,21 @@ def home():
     if request.method == 'GET':
         return "CBT Backend is Online (Gemini 3 Mode)"
 
+    # POST処理
     api_key = os.environ.get("GEMINI_API_KEY", "").strip()
     url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent"
 
     try:
-        data = request.get_json()
+        # force=True をつけることで Content-Type が正しくなくてもパースを試みます
+        data = request.get_json(force=True, silent=True)
+        if not data:
+            print("Error: No JSON data received")
+            return jsonify({"error": "No data", "detail": "JSON body is missing"}), 400
+            
         thought = data.get('thought', '入力なし')
+        print(f"Received thought: {thought}") # デバッグ用ログ
 
+        # (以下、payload作成〜API呼び出しの処理はそのまま)
         # 【書き加えポイント】安全性設定の定義
         # BLOCK_ONLY_HIGH は、明らかな攻撃性以外は分析を続行させます
         payload = {
