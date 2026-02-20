@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests; connect-src 'self' https://game-analysis.onrender.com/;">
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests; connect-src 'self' https://game-analysis.onrender.com;">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>心理ゲーム・アナライザー Pro</title>
@@ -18,6 +18,9 @@
         .badge-ok { background: #dcfce7; color: #166534; }
         .badge-not-ok { background: #fee2e2; color: #991b1b; }
         .badge-none { background: #f1f5f9; color: #94a3b8; }
+        /* スムーズな表示用アニメーション */
+        .fade-in { animation: fadeIn 0.5s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body class="min-h-screen pb-12">
@@ -31,14 +34,14 @@
         <div id="input-section" class="game-card shadow-xl p-8 space-y-6 border-t-4 border-indigo-500">
             <div>
                 <label class="block text-lg font-bold mb-3 text-slate-700">今、どんなやり取りがありましたか？</label>
-                <textarea id="user-thought" class="w-full h-32 p-4 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-400 focus:border-transparent outline-none bg-slate-50 transition placeholder-slate-400" placeholder="例：良かれと思ってアドバイスしたのに、相手が不機謙になり、最後は私もイライラしてしまった。"></textarea>
+                <textarea id="user-thought" class="w-full h-32 p-4 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-400 focus:border-transparent outline-none bg-slate-50 transition placeholder-slate-400" placeholder="例：良かれと思ってアドバイスしたのに、相手が不機嫌になり、最後は私もイライラしてしまった。"></textarea>
             </div>
 
             <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start space-x-3">
                 <span class="text-amber-500 mt-0.5 text-lg">⚠️</span>
                 <div class="text-[11px] md:text-xs text-amber-900 leading-relaxed">
                     <p class="font-bold mb-1 underline">ご利用上の注意</p>
-                    深刻なリスク（自傷・他害等）を伴う入力はAIがブロックし、エラーの原因となります。その場合は表現をマイルドにしてお試しください。
+                    深刻なリスク（自傷・他害等）を伴う内容はAIがブロックしエラーとなります。また、無料枠のため混雑時は「503」や「429」エラーが出ますが、その場合は数分置いてから再試行してください。
                 </div>
             </div>
 
@@ -52,7 +55,7 @@
             <p class="mt-6 text-indigo-800 font-bold">無意識のポジション遷移を解析中...</p>
         </div>
 
-        <div id="result-section" class="hidden space-y-6 mt-8">
+        <div id="result-section" class="hidden space-y-6 mt-8 fade-in">
             <div class="game-card p-6 shadow-md border-l-8 border-indigo-600">
                 <h3 class="text-xs font-bold text-indigo-400 uppercase tracking-widest mb-1">特定された心理ゲーム</h3>
                 <div id="game-name" class="text-2xl font-black text-indigo-900 mb-2"></div>
@@ -104,17 +107,21 @@
     </div>
 
     <script>
+        // バックエンドURL（スラッシュの有無を正規化）
         const API_URL = 'https://game-analysis.onrender.com/';
 
         // ページ読み込み時にバックエンドのスリープを解除
         window.addEventListener('DOMContentLoaded', () => {
+            console.log("Waking up the server...");
             fetch(API_URL).catch(() => {});
         });
 
         async function analyzeThought() {
-            const thought = document.getElementById('user-thought').value.trim();
+            const thoughtInput = document.getElementById('user-thought');
+            const thought = thoughtInput.value.trim();
             if (!thought) { alert('内容を入力してください'); return; }
 
+            // UI切り替え
             document.getElementById('input-section').classList.add('hidden');
             document.getElementById('loading').classList.remove('hidden');
 
@@ -125,16 +132,26 @@
                     body: JSON.stringify({ "thought": thought })
                 });
 
+                // サーバーが200以外のステータスを返した場合
+                if (!response.ok) {
+                    if (response.status === 503 || response.status === 429) {
+                        throw new Error(`AIが混み合っています(${response.status})。1分ほど待ってからお試しください。`);
+                    }
+                    throw new Error(`通信エラー(${response.status})。時間をおいて再送してください。`);
+                }
+
                 const data = await response.json();
+                console.log("Raw API Response:", data);
                 
                 if (data.error) {
-                    showSafetyWarning(data.detail || "エラーが発生しました");
+                    showSafetyWarning(data.detail || "AIが回答を控えました。");
                 } else {
                     displayResults(data);
                 }
             } catch (error) {
-                console.error("Fetch error:", error);
-                alert(`接続エラー: サーバーが起動中か、通信が遮断されました。数秒後に再度お試しください。`);
+                console.error("Analysis failed:", error);
+                alert(`分析を中断しました: ${error.message}`);
+                // 入力画面に戻す
                 document.getElementById('input-section').classList.remove('hidden');
                 document.getElementById('loading').classList.add('hidden');
             }
@@ -144,28 +161,33 @@
             document.getElementById('loading').classList.add('hidden');
             document.getElementById('result-section').classList.remove('hidden');
 
-            // データの安全な取得用ヘルパー
+            // AIのレスポンスがネストしている場合やキー名が違う場合に対応する最強のヘルパー
             const getVal = (res, keys) => {
-                for (let key of keys) { if (res[key]) return res[key]; }
-                return "-";
+                for (let key of keys) {
+                    if (res[key] && res[key] !== "-") return res[key];
+                }
+                return "分析中...";
             };
 
-            document.getElementById('game-name').innerText = getVal(data, ['game_name', 'gameName']);
+            // 基本情報の反映
+            document.getElementById('game-name').innerText = getVal(data, ['game_name', 'gameName', 'title']);
             document.getElementById('game-definition').innerText = getVal(data, ['definition', 'description']);
 
-            const start = data.position_start || {};
+            // 開始・終了ポジション
+            const start = data.position_start || data.start_position || {};
             renderBadge('pos-start-self', start.self || "-");
             renderBadge('pos-start-others', start.others || "-");
             document.getElementById('pos-start-desc').innerText = start.description || "";
 
-            const end = data.position_end || {};
+            const end = data.position_end || data.end_position || {};
             renderBadge('pos-end-self', end.self || "-");
             renderBadge('pos-end-others', end.others || "-");
             document.getElementById('pos-end-desc').innerText = end.description || "";
 
-            document.getElementById('prediction').innerText = getVal(data, ['prediction', 'future_prediction']);
-            document.getElementById('hidden-motive').innerText = getVal(data, ['hidden_motive', 'payoff']);
-            document.getElementById('advice').innerText = getVal(data, ['advice', 'exit_strategy']);
+            // 下部テキストエリア
+            document.getElementById('prediction').innerText = getVal(data, ['prediction', 'future_prediction', 'future']);
+            document.getElementById('hidden-motive').innerText = getVal(data, ['hidden_motive', 'payoff', 'motive']);
+            document.getElementById('advice').innerText = getVal(data, ['advice', 'exit_strategy', 'solution']);
         }
 
         function renderBadge(id, text) {
@@ -176,6 +198,7 @@
             el.className = 'ok-badge';
             
             const t = safeText.toLowerCase();
+            // 判定ロジックの強化
             if (t.includes('not ok') || t.includes('not-ok') || t.includes('非ok') || t.includes('notok')) {
                 el.classList.add('badge-not-ok');
             } else if (t.includes('ok')) {
@@ -188,11 +211,11 @@
         function showSafetyWarning(detail) {
             document.getElementById('loading').classList.add('hidden');
             document.getElementById('result-section').classList.remove('hidden');
-            document.getElementById('game-name').innerText = "⚠️ 解析不可";
-            document.getElementById('game-definition').innerText = "制限事項";
-            document.getElementById('prediction').innerText = "この内容については分析を提供できません。";
+            document.getElementById('game-name').innerText = "⚠️ 解析制限";
+            document.getElementById('game-definition').innerText = "制限ポリシーまたは混雑";
+            document.getElementById('prediction').innerText = "現在の内容では詳細な分析ができませんでした。";
             document.getElementById('hidden-motive').innerText = detail;
-            document.getElementById('advice').innerText = "より具体的な状況を記述するか、マイルドな表現に言い換えてみてください。";
+            document.getElementById('advice').innerText = "日常のささいな出来事を具体的に書くと、分析が通りやすくなります。";
             
             ['pos-start-self', 'pos-start-others', 'pos-end-self', 'pos-end-others'].forEach(id => renderBadge(id, "-"));
         }
