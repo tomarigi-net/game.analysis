@@ -13,8 +13,8 @@ def home():
     if request.method == 'GET': return "Backend Online"
 
     api_key = os.environ.get("GEMINI_API_KEY", "").strip()
-    # モデル名は指定の gemini-3-flash-preview
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key={api_key}"
+    # 最新の安定モデルを使用
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
 
     try:
         raw_data = request.data.decode('utf-8')
@@ -24,15 +24,35 @@ def home():
         if not thought:
              return jsonify({"error": "Empty input", "detail": "内容を入力してください。"}), 200
 
+        # AIへの指示を「命令形」と「構造の定義」に特化
         prompt = f"""
-        あなたは心理カウンセラーです。以下の内容を心理学の「心理ゲーム」として客観的に分析し、JSON形式で出力してください。
+        # Role
+        You are an expert in Transactional Analysis (Psychology).
         
-        内容: {thought}
+        # Task
+        Analyze the following text as a "Psychological Game" and output ONLY in the specified JSON format.
+        Input text: {thought}
+
+        # JSON Format (Strict)
+        {{
+          "game_name": "Game Name",
+          "definition": "Brief definition",
+          "position_start": {{"self": "OK or Not OK", "others": "OK or Not OK", "description": "start state"}},
+          "position_end": {{"self": "OK or Not OK", "others": "OK or Not OK", "description": "end state"}},
+          "prediction": "Future prediction",
+          "hidden_motive": "Hidden gain",
+          "advice": "How to avoid"
+        }}
+        
+        Answer in Japanese. Output only JSON.
         """
 
-        # 【修正ポイント】BLOCK_NONE を避け、BLOCK_ONLY_HIGH に変更
         payload = {
             "contents": [{"parts": [{"text": prompt}]}],
+            "generationConfig": {
+                "temperature": 0.1,  # 回答を安定させる
+                "response_mime_type": "application/json" # JSON出力を強制
+            },
             "safetySettings": [
                 {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_ONLY_HIGH"},
                 {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_ONLY_HIGH"},
@@ -43,28 +63,22 @@ def home():
 
         response = requests.post(url, json=payload, timeout=30)
         
-        # もし400エラーが出た場合、設定が原因の可能性が高い
         if response.status_code != 200:
-            print(f"Gemini API Error: {response.status_code} - {response.text}")
-            return jsonify({"error": "API Error", "detail": "API設定エラーが発生しました。"}), 200
+            print(f"API Error: {response.text}")
+            return jsonify({"error": "API Error", "detail": "AIサーバー側でエラーが発生しました。"}), 200
 
         result = response.json()
         
-        candidates = result.get('candidates', [])
-        if not candidates or 'content' not in candidates[0]:
-            return jsonify({"error": "Safety", "detail": "AIが内容の分析を制限しました。別の表現でお試しください。"}), 200
-
-        ai_text = candidates[0]['content']['parts'][0]['text']
-        
-        # JSON抽出処理
-        start_idx = ai_text.find('{')
-        end_idx = ai_text.rfind('}') + 1
-        if start_idx != -1:
-            return jsonify(json.loads(ai_text[start_idx:end_idx]))
-        
-        return jsonify({"error": "Format error", "detail": "回答形式が正しくありません。"}), 200
+        # 回答の取り出し
+        if 'candidates' in result and len(result['candidates']) > 0:
+            ai_text = result['candidates'][0]['content']['parts'][0]['text']
+            # JSONとして解析してフロントにそのまま返す
+            return jsonify(json.loads(ai_text))
+        else:
+            return jsonify({"error": "Safety", "detail": "AIが回答を生成できませんでした。表現を少し変えてみてください。"}), 200
 
     except Exception as e:
+        print(f"System error: {e}")
         return jsonify({"error": "System error", "detail": str(e)}), 200
 
 if __name__ == '__main__':
