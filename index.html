@@ -15,9 +15,10 @@
         body { background-color: var(--game-main); color: var(--game-dark); font-family: 'sans-serif'; }
         .game-card { background: white; border: 1px solid #e2e8f0; border-radius: 1.5rem; }
         .ok-box { transition: all 0.3s ease; }
-        .ok-badge { padding: 2px 8px; border-radius: 6px; font-weight: bold; font-size: 0.75rem; }
+        .ok-badge { padding: 2px 8px; border-radius: 6px; font-weight: bold; font-size: 0.75rem; min-width: 80px; text-align: center; display: inline-block; }
         .badge-ok { background: #dcfce7; color: #166534; }
         .badge-not-ok { background: #fee2e2; color: #991b1b; }
+        .badge-none { background: #f1f5f9; color: #94a3b8; }
     </style>
 </head>
 <body class="min-h-screen pb-12">
@@ -31,7 +32,7 @@
         <div id="input-section" class="game-card shadow-xl p-8 space-y-6 border-t-4 border-indigo-500">
             <div>
                 <label class="block text-lg font-bold mb-3 text-slate-700">今、どんなやり取りがありましたか？</label>
-                <textarea id="user-thought" class="w-full h-32 p-4 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-400 focus:border-transparent outline-none bg-slate-50 transition placeholder-slate-400" placeholder="例：良かれと思ってアドバイスしたのに、相手が不機嫌になり、最後は私もイライラしてしまった。"></textarea>
+                <textarea id="user-thought" class="w-full h-32 p-4 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-400 focus:border-transparent outline-none bg-slate-50 transition placeholder-slate-400" placeholder="例：良かれと思ってアドバイスしたのに、相手が不機謙になり、最後は私もイライラしてしまった。"></textarea>
             </div>
 
             <button onclick="analyzeThought()" id="submit-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-2xl transition-all shadow-lg shadow-indigo-200 text-lg">
@@ -119,11 +120,13 @@
                     body: JSON.stringify({ thought: thought })
                 });
 
+                if (!response.ok) throw new Error('Network response was not ok');
+                
                 const data = await response.json();
                 displayResults(data);
             } catch (error) {
                 console.error(error);
-                alert("解析中にエラーが発生しました。");
+                alert("解析中にエラーが発生しました。時間を置いて再度お試しください。");
                 document.getElementById('input-section').classList.remove('hidden');
                 document.getElementById('loading').classList.add('hidden');
             }
@@ -133,33 +136,49 @@
             document.getElementById('loading').classList.add('hidden');
             document.getElementById('result-section').classList.remove('hidden');
 
-            // JSONパース（文字列で返ってきた場合への対応）
-            const res = (typeof data === 'string') ? JSON.parse(data) : data;
+            let res;
+            try {
+                res = (typeof data === 'string') ? JSON.parse(data) : data;
+            } catch (e) {
+                res = data; // パース済みの場合
+            }
 
-            // 基本情報
-            document.getElementById('game-name').innerText = res.game_name;
-            document.getElementById('game-definition').innerText = res.definition;
-            
-            // OK牧場：開始
-            renderBadge('pos-start-self', res.position_start.self);
-            renderBadge('pos-start-others', res.position_start.others);
-            document.getElementById('pos-start-desc').innerText = res.position_start.description;
+            // 1. 基本情報
+            document.getElementById('game-name').innerText = res.game_name || "不明なパターン";
+            document.getElementById('game-definition').innerText = res.definition || "理論的解釈を生成中...";
 
-            // OK牧場：結末
-            renderBadge('pos-end-self', res.position_end.self);
-            renderBadge('pos-end-others', res.position_end.others);
-            document.getElementById('pos-end-desc').innerText = res.position_end.description;
+            // 2. OK牧場：開始（安全なアクセス）
+            const start = res.position_start || {};
+            renderBadge('pos-start-self', start.self || "-");
+            renderBadge('pos-start-others', start.others || "-");
+            document.getElementById('pos-start-desc').innerText = start.description || "";
 
-            // 詳細
-            document.getElementById('prediction').innerText = res.prediction;
-            document.getElementById('hidden-motive').innerText = res.hidden_motive;
-            document.getElementById('advice').innerText = res.advice;
+            // 3. OK牧場：結末（安全なアクセス）
+            const end = res.position_end || {};
+            renderBadge('pos-end-self', end.self || "-");
+            renderBadge('pos-end-others', end.others || "-");
+            document.getElementById('pos-end-desc').innerText = end.description || "";
+
+            // 4. 詳細（キーの揺らぎを吸収）
+            document.getElementById('prediction').innerText = res.prediction || res.future_prediction || "-";
+            document.getElementById('hidden-motive').innerText = res.hidden_motive || "-";
+            document.getElementById('advice').innerText = res.advice || res.exit_strategy || "-";
         }
 
         function renderBadge(id, text) {
             const el = document.getElementById(id);
+            if (!el) return;
             el.innerText = text;
-            el.className = 'ok-badge ' + (text.includes('not OK') ? 'badge-not-ok' : 'badge-ok');
+            
+            // クラスのリセットと付与
+            el.className = 'ok-badge';
+            if (text === "-") {
+                el.classList.add('badge-none');
+            } else if (text.includes('not OK')) {
+                el.classList.add('badge-not-ok');
+            } else {
+                el.classList.add('badge-ok');
+            }
         }
     </script>
 </body>
