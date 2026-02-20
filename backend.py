@@ -36,7 +36,7 @@ def home():
             }
         }
 
-        response = requests.post(url, json=payload, timeout=30)
+        response = requests.post(url, json=payload, timeout=60)
         
         if response.status_code != 200:
             return jsonify({"error": "API Error", "detail": f"AI接続エラー({response.status_code})"}), 200
