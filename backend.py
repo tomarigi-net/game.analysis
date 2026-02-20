@@ -20,7 +20,7 @@ def home():
     if not api_key:
         return jsonify({"error": "Config Error", "detail": "APIキーが設定されていません。"}), 200
 
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key={api_key}"
 
     try:
         raw_data = request.data.decode('utf-8')
