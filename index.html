@@ -112,44 +112,66 @@
             </button>
         </div>
     </div>
-
-    <script>
+   <script>
+        // ページ読み込み時にサーバーを叩いておく（Renderのスリープ対策）
         window.addEventListener('DOMContentLoaded', () => {
-            console.log('Wake-up call sent to backend...');
-            fetch('https://game-analysis.onrender.com/')
-                .then(response => console.log('Backend response received.'))
-                .catch(error => console.error('Wake-up failed (Normal if spinning up):', error));
+            const apiUrl = 'https://game-analysis.onrender.com/';
+            console.log('Wake-up call to:', apiUrl);
+            fetch(apiUrl).catch(e => console.log('Server is starting up...'));
         });
-        async function analyzeThought() {
-            const thought = document.getElementById('user-thought').value;
-            if (!thought) return alert('やり取りの内容を入力してください');
 
+        async function analyzeThought() {
+            const thoughtElement = document.getElementById('user-thought');
+            const thought = thoughtElement.value.trim();
+            
+            if (!thought) {
+                alert('やり取りの内容を入力してください');
+                return;
+            }
+
+            // UIを読み込み中に切り替え
             document.getElementById('input-section').classList.add('hidden');
             document.getElementById('loading').classList.remove('hidden');
 
-            try {
-const response = await fetch('https://game-analysis.onrender.com/', { // ★ここが実際のURLと合っているか再確認
-    method: 'POST',
-    mode: 'cors', // CORSを明示
-    headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ "thought": thought })
-});
-                if (!response.ok) throw new Error('Network response was not ok');
-                
-                const data = await response.json();
+            const apiUrl = 'https://game-analysis.onrender.com/';
 
-                // ポリシー違反・空データの判定
-                if (!data || Object.keys(data).length === 0 || data.error === "Safety") {
-                    showSafetyWarning();
+            try {
+                console.log('Sending data:', { thought: thought });
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    mode: 'cors',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    // Python側の json.loads() で確実に読める形式で送る
+                    body: JSON.stringify({ "thought": thought })
+                });
+
+                console.log('HTTP Status:', response.status);
+
+                if (!response.ok) {
+                    const errorDetail = await response.text();
+                    console.error('Server Error Detail:', errorDetail);
+                    throw new Error(`サーバーエラー (Status: ${response.status})`);
+                }
+
+                const data = await response.json();
+                console.log('Received Data:', data);
+
+                // 安全フィルターや空データの判定
+                if (!data || data.error === "Safety" || data.error === "No data") {
+                    showSafetyWarning(data.detail || "");
                 } else {
                     displayResults(data);
                 }
+
             } catch (error) {
-                console.error(error);
-                alert("接続エラーが発生しました。時間を置いて再度お試しください。");
+                console.error('Fetch Error:', error);
+                alert(`接続に失敗しました。\n理由: ${error.message}\n\nサーバーが起動中の可能性があります。1分ほど待ってから再試行してください。`);
+                
+                // 入力画面に戻す
                 document.getElementById('input-section').classList.remove('hidden');
                 document.getElementById('loading').classList.add('hidden');
             }
@@ -159,55 +181,46 @@ const response = await fetch('https://game-analysis.onrender.com/', { // ★こ�
             document.getElementById('loading').classList.add('hidden');
             document.getElementById('result-section').classList.remove('hidden');
             
-            // レイアウトを正常系に戻す
+            // レイアウトのリセット
             document.getElementById('prediction-box').className = "bg-slate-900 text-white rounded-3xl p-8 shadow-2xl relative overflow-hidden";
             document.getElementById('prediction-label').innerText = "⚠️ このまま進んだ場合の「破綻」";
 
-            let res;
-            try {
-                res = (typeof data === 'string') ? JSON.parse(data) : data;
-            } catch (e) {
-                res = data;
-            }
+            // 各項目の流し込み（バックエンドのキー名に合わせる）
+            document.getElementById('game-name').innerText = data.game_name || "不明なパターン";
+            document.getElementById('game-definition').innerText = data.definition || "";
 
-            document.getElementById('game-name').innerText = res.game_name || "不明なパターン";
-            document.getElementById('game-definition').innerText = res.definition || "理論的解釈を生成中...";
-
-            const start = res.position_start || {};
+            const start = data.position_start || {};
             renderBadge('pos-start-self', start.self || "-");
             renderBadge('pos-start-others', start.others || "-");
             document.getElementById('pos-start-desc').innerText = start.description || "";
 
-            const end = res.position_end || {};
+            const end = data.position_end || {};
             renderBadge('pos-end-self', end.self || "-");
             renderBadge('pos-end-others', end.others || "-");
             document.getElementById('pos-end-desc').innerText = end.description || "";
 
-            document.getElementById('prediction').innerText = res.prediction || res.future_prediction || "-";
-            document.getElementById('hidden-motive').innerText = res.hidden_motive || "-";
-            document.getElementById('advice').innerText = res.advice || res.exit_strategy || "-";
+            document.getElementById('prediction').innerText = data.prediction || data.future_prediction || "-";
+            document.getElementById('hidden-motive').innerText = data.hidden_motive || "-";
+            document.getElementById('advice').innerText = data.advice || data.exit_strategy || "-";
         }
 
-        function showSafetyWarning() {
+        function showSafetyWarning(detail) {
             document.getElementById('loading').classList.add('hidden');
             document.getElementById('result-section').classList.remove('hidden');
             
-            // 警告用のスタイル調整
-            document.getElementById('game-name').innerText = "⚠️ 解析を中断しました";
-            document.getElementById('game-definition').innerText = "安全・倫理ポリシーによる制限";
+            document.getElementById('game-name').innerText = "⚠️ 解析を制限しました";
+            document.getElementById('game-definition').innerText = "安全・倫理ポリシーまたはデータエラー";
             document.getElementById('prediction-box').className = "bg-rose-900 text-white rounded-3xl p-8 shadow-2xl relative overflow-hidden";
-            document.getElementById('prediction-label').innerText = "安全上の通知";
+            document.getElementById('prediction-label').innerText = "通知";
             
-            document.getElementById('prediction').innerText = "入力内容に、AIの安全ガイドライン（過度な攻撃性、自傷リスク、または深刻な倫理的問題）に抵触する表現が含まれている可能性があるため、自動分析を停止しました。";
-            document.getElementById('hidden-motive').innerText = "セーフティ・フィルターが作動しました。より客観的な表現で再度お試しください。";
-            document.getElementById('advice').innerText = "深刻な悩みがある場合は、専門のカウンセラーや公的な相談窓口（いのちの電話など）にご相談ください。";
+            document.getElementById('prediction').innerText = "適切な解析結果が生成されませんでした。表現をマイルドにするか、具体的な状況を記述して再度お試しください。";
+            document.getElementById('hidden-motive').innerText = detail || "セーフティ・フィルターが作動した可能性があります。";
+            document.getElementById('advice').innerText = "深刻な悩みがある場合は、専門の窓口へご相談ください。";
             
             renderBadge('pos-start-self', "-");
             renderBadge('pos-start-others', "-");
             renderBadge('pos-end-self', "-");
             renderBadge('pos-end-others', "-");
-            document.getElementById('pos-start-desc').innerText = "";
-            document.getElementById('pos-end-desc').innerText = "";
         }
 
         function renderBadge(id, text) {
@@ -215,12 +228,14 @@ const response = await fetch('https://game-analysis.onrender.com/', { // ★こ�
             if (!el) return;
             el.innerText = text;
             el.className = 'ok-badge';
-            if (text === "-") {
+            if (text === "-" || text === "不明") {
                 el.classList.add('badge-none');
-            } else if (text.includes('not OK')) {
+            } else if (text.toLowerCase().includes('not ok')) {
                 el.classList.add('badge-not-ok');
-            } else {
+            } else if (text.toLowerCase().includes('ok')) {
                 el.classList.add('badge-ok');
+            } else {
+                el.classList.add('badge-none');
             }
         }
     </script>
