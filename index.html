@@ -31,7 +31,7 @@
         <div id="input-section" class="game-card shadow-xl p-8 space-y-6 border-t-4 border-indigo-500">
             <div>
                 <label class="block text-lg font-bold mb-3 text-slate-700">今、どんなやり取りがありましたか？</label>
-                <textarea id="user-thought" class="w-full h-32 p-4 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-400 outline-none bg-slate-50 transition" placeholder="例：良かれと思ってアドバイスしたのに、相手が不機嫌になり、最後は私もイライラしてしまった。"></textarea>
+                <textarea id="user-thought" class="w-full h-32 p-4 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-400 outline-none bg-slate-50 transition" placeholder="例：良かれと思ってアドバイスしたのに、相手が不機謙になり、最後は私もイライラした。"></textarea>
             </div>
 
             <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start space-x-3">
@@ -104,8 +104,7 @@
 
     <script>
         async function analyzeThought() {
-            const textarea = document.getElementById('user-thought');
-            const thought = textarea.value.trim();
+            const thought = document.getElementById('user-thought').value.trim();
             if (!thought) return alert('やり取りの内容を入力してください');
 
             document.getElementById('input-section').classList.add('hidden');
@@ -115,52 +114,54 @@
                 const response = await fetch('https://game-analysis.onrender.com/', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ "thought": thought })
+                    body: JSON.stringify({ thought: thought })
                 });
 
                 if (!response.ok) throw new Error('Server responded with ' + response.status);
                 
                 const data = await response.json();
+                
+                // 【重要】うまくいったVerのパースロジックを導入
+                const res = (typeof data === 'string') ? JSON.parse(data) : data;
 
-                // 安全制限または空データのチェック
-                if (!data || data.error === "Safety") {
+                if (!res || res.error === "Safety") {
                     showSafetyWarning();
                 } else {
-                    displayResults(data);
+                    displayResults(res);
                 }
             } catch (error) {
                 console.error('Error:', error);
-                alert("接続エラーが発生しました。サーバーが起動するまで（約1分）待ってから再度お試しください。");
+                alert("接続エラーが発生しました。時間を置いて再度お試しください。");
                 document.getElementById('input-section').classList.remove('hidden');
                 document.getElementById('loading').classList.add('hidden');
             }
         }
 
-        function displayResults(data) {
+        function displayResults(res) {
             document.getElementById('loading').classList.add('hidden');
             document.getElementById('result-section').classList.remove('hidden');
             
-            // レイアウト初期化
             document.getElementById('prediction-box').className = "bg-slate-900 text-white rounded-3xl p-8 shadow-2xl relative overflow-hidden";
             document.getElementById('prediction-label').innerText = "⚠️ このまま進んだ場合の「破綻」";
 
-            // データのマッピング（backend.pyの出力構造に合わせる）
-            document.getElementById('game-name').innerText = data.game_name || "心理パターン";
-            document.getElementById('game-definition').innerText = data.definition || "";
+            // テキストの流し込み（うまくいったVerのキー名 future_prediction 等に対応）
+            document.getElementById('game-name').innerText = res.game_name || "心理パターン";
+            document.getElementById('game-definition').innerText = res.definition || "";
 
-            const start = data.position_start || {};
+            const start = res.position_start || {};
             renderBadge('pos-start-self', start.self || "-");
             renderBadge('pos-start-others', start.others || "-");
             document.getElementById('pos-start-desc').innerText = start.description || "";
 
-            const end = data.position_end || {};
+            const end = res.position_end || {};
             renderBadge('pos-end-self', end.self || "-");
             renderBadge('pos-end-others', end.others || "-");
             document.getElementById('pos-end-desc').innerText = end.description || "";
 
-            document.getElementById('prediction').innerText = data.prediction || data.future_prediction || "-";
-            document.getElementById('hidden-motive').innerText = data.hidden_motive || "-";
-            document.getElementById('advice').innerText = data.advice || data.exit_strategy || "-";
+            // どちらのキー名でも動くように統合
+            document.getElementById('prediction').innerText = res.future_prediction || res.prediction || "-";
+            document.getElementById('hidden-motive').innerText = res.hidden_motive || "-";
+            document.getElementById('advice').innerText = res.exit_strategy || res.advice || "-";
         }
 
         function showSafetyWarning() {
@@ -168,9 +169,7 @@
             document.getElementById('result-section').classList.remove('hidden');
             document.getElementById('game-name').innerText = "⚠️ 解析を中断しました";
             document.getElementById('prediction-box').className = "bg-rose-900 text-white rounded-3xl p-8";
-            document.getElementById('prediction').innerText = "入力内容がAIの安全ガイドラインに触れたため、分析を停止しました。表現を変えて再度お試しください。";
-            renderBadge('pos-start-self', "-"); renderBadge('pos-start-others', "-");
-            renderBadge('pos-end-self', "-"); renderBadge('pos-end-others', "-");
+            document.getElementById('prediction').innerText = "入力内容がAIの安全ガイドラインに触れたため、分析を停止しました。";
         }
 
         function renderBadge(id, text) {
