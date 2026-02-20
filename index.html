@@ -10,10 +10,6 @@
         :root { --game-main: #f8fafc; --game-accent: #6366f1; --game-dark: #1e293b; }
         body { background-color: var(--game-main); color: var(--game-dark); font-family: sans-serif; }
         .game-card { background: white; border: 1px solid #e2e8f0; border-radius: 1.5rem; }
-        .ok-badge { padding: 2px 8px; border-radius: 6px; font-weight: bold; font-size: 0.75rem; min-width: 80px; text-align: center; display: inline-block; }
-        .badge-ok { background: #dcfce7; color: #166534; }
-        .badge-not-ok { background: #fee2e2; color: #991b1b; }
-        .badge-none { background: #f1f5f9; color: #94a3b8; }
     </style>
 </head>
 <body class="min-h-screen pb-12">
@@ -24,7 +20,7 @@
         </header>
 
         <div id="input-section" class="game-card shadow-xl p-8 space-y-6 border-t-4 border-indigo-500">
-            <textarea id="user-thought" class="w-full h-32 p-4 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-400 bg-slate-50" placeholder="例：良かれと思ってアドバイスしたのに、相手が不機嫌になり、最後は私もイライラした。"></textarea>
+            <textarea id="user-thought" class="w-full h-32 p-4 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-400 bg-slate-50" placeholder="例：良かれと思ってアドバイスしたのに、相手が不機謙になり、最後は私もイライラした。"></textarea>
             <button onclick="analyzeThought()" id="submit-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-2xl transition-all shadow-lg text-lg">
                 深層心理を分析する
             </button>
@@ -32,72 +28,84 @@
 
         <div id="loading" class="hidden text-center py-16">
             <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-indigo-500 border-t-transparent"></div>
-            <p class="mt-6 text-indigo-800 font-bold">解析中...</p>
+            <p class="mt-6 text-indigo-800 font-bold">解析中...（最大1分かかる場合があります）</p>
         </div>
 
         <div id="result-section" class="hidden space-y-6 mt-8">
-            <div class="game-card p-6 border-l-8 border-indigo-600">
+            <div class="game-card p-6 border-l-8 border-indigo-600 shadow-md">
                 <div id="game-name" class="text-2xl font-black text-indigo-900"></div>
                 <p id="game-definition" class="text-sm text-slate-500 italic mt-2"></p>
             </div>
-            <div id="prediction-box" class="bg-slate-900 text-white rounded-3xl p-8">
+            
+            <div id="prediction-box" class="bg-slate-900 text-white rounded-3xl p-8 shadow-xl">
+                <h3 class="text-indigo-400 text-xs font-bold uppercase mb-2">予測される結末</h3>
                 <p id="prediction" class="text-xl font-bold"></p>
             </div>
-            <div class="bg-white border p-6 rounded-2xl">
-                <h3 class="font-bold mb-2">🔍 無意識の真実</h3>
-                <p id="hidden-motive" class="text-slate-600"></p>
+
+            <div class="grid grid-cols-1 gap-4">
+                <div class="bg-white border p-6 rounded-2xl shadow-sm">
+                    <h3 class="font-bold mb-2 flex items-center text-slate-800">🔍 無意識の真実</h3>
+                    <p id="hidden-motive" class="text-slate-600 leading-relaxed"></p>
+                </div>
+                <div class="bg-emerald-50 border border-emerald-200 p-6 rounded-2xl shadow-sm">
+                    <h3 class="font-bold text-emerald-800 mb-2 flex items-center">💡 自律的な大人としての回避策</h3>
+                    <p id="advice" class="text-emerald-900 font-bold leading-relaxed"></p>
+                </div>
             </div>
-            <div class="bg-emerald-50 border border-emerald-200 p-6 rounded-2xl">
-                <h3 class="font-bold text-emerald-800 mb-2">💡 回避策</h3>
-                <p id="advice" class="text-emerald-900 font-bold"></p>
-            </div>
-            <button onclick="location.reload()" class="w-full py-4 text-slate-400 hover:text-indigo-600 font-bold">← 戻る</button>
+            
+            <button onclick="location.reload()" class="w-full py-4 text-slate-400 hover:text-indigo-600 font-bold transition-colors">
+                ← 別の内容を分析する
+            </button>
         </div>
     </div>
 
-<script>
-    async function analyzeThought() {
-        const textarea = document.getElementById('user-thought');
-        const thought = textarea.value.trim(); // 空白を削除
-        
-        if (!thought) return alert('やり取りの内容を入力してください');
-
-        document.getElementById('input-section').classList.add('hidden');
-        document.getElementById('loading').classList.remove('hidden');
-
-        try {
-            const response = await fetch('https://game-analysis.onrender.com/', {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json' // サーバーにJSONを期待していると伝える
-                },
-                body: JSON.stringify({ "thought": thought }) // 確実にJSONとして送る
-            });
-
-            // サーバーからエラー(400など)が返ってきた場合
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                console.error('Server Error:', errorData);
-                throw new Error('Server responded with ' + response.status);
-            }
+    <script>
+        async function analyzeThought() {
+            const textarea = document.getElementById('user-thought');
+            const thought = textarea.value.trim();
             
-            const data = await response.json();
+            if (!thought) return alert('やり取りの内容を入力してください');
 
-            if (!data || data.error === "Safety") {
-                showSafetyWarning();
-            } else {
-                displayResults(data);
+            // 画面表示の切り替え
+            document.getElementById('input-section').classList.add('hidden');
+            document.getElementById('loading').classList.remove('hidden');
+
+            try {
+                const response = await fetch('https://game-analysis.onrender.com/', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ thought: thought })
+                });
+
+                // サーバー側で400エラー等が出た場合の処理
+                if (!response.ok) {
+                    const errorDetail = await response.text();
+                    console.error('Server Error Detail:', errorDetail);
+                    throw new Error(`Server Error (${response.status})`);
+                }
+
+                const data = await response.json();
+                
+                // 結果の表示
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('result-section').classList.remove('hidden');
+                
+                document.getElementById('game-name').innerText = data.game_name || "心理ゲームの兆候";
+                document.getElementById('game-definition').innerText = data.definition || "対人関係における無意識のパターンを解析しました。";
+                document.getElementById('prediction').innerText = data.prediction || data.future_prediction || "不明な結末";
+                document.getElementById('hidden-motive').innerText = data.hidden_motive || "解析できませんでした。";
+                document.getElementById('advice').innerText = data.advice || data.exit_strategy || "深呼吸をして、客観的な視点に戻りましょう。";
+
+            } catch (err) {
+                console.error('Fetch Error:', err);
+                alert('【接続エラー】\nサーバーが休止状態から復帰中か、送信形式に問題があります。\n1分ほど待ってからページを再読み込みして、再度お試しください。');
+                document.getElementById('input-section').classList.remove('hidden');
+                document.getElementById('loading').classList.add('hidden');
             }
-        } catch (error) {
-            console.error('Fetch Error:', error);
-            alert("通信に失敗しました。サーバーのログに '400' ではなく '200' が出るか確認してください。");
-            document.getElementById('input-section').classList.remove('hidden');
-            document.getElementById('loading').classList.add('hidden');
         }
-    }
-
-    // 他の displayResults, showSafetyWarning, renderBadge 関数はそのまま残してください
-</script>
+    </script>
 </body>
 </html>
