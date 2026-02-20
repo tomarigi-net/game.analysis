@@ -5,7 +5,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 
 app = Flask(__name__)
-# CORS設定をより詳細に（すべてのオリジンとメソッドを許可）
+# すべてのオリジンを許可（CORSエラー防止）
 CORS(app, resources={r"/*": {"origins": "*"}})
 
 def get_prompt():
@@ -17,94 +17,80 @@ def get_prompt():
                 return f.read().strip()
     except Exception as e:
         print(f"Prompt loading error: {e}")
-    return "あなたは優秀な交流分析カウンセラーです。必ずJSON形式で回答してください。"
+    # フォールバック用プロンプト：JSON構造をAIに再提示して安定させます
+    return "あなたは優秀な交流分析カウンセラーです。必ず以下のJSON形式で回答してください: { 'game_name': '', 'definition': '', 'position_start': {'self': '', 'others': '', 'description': ''}, 'position_end': {'self': '', 'others': '', 'description': ''}, 'prediction': '', 'hidden_motive': '', 'advice': '' }"
 
 SYSTEM_PROMPT = get_prompt()
 
 @app.route('/', methods=['GET', 'POST', 'OPTIONS'], strict_slashes=False)
 def home():
-    # OPTIONS（プリフライトリクエスト）への明示的な応答
     if request.method == 'OPTIONS':
         return '', 200
     
     if request.method == 'GET':
         return "CBT Backend is Online (Gemini 3 Mode)"
 
-    # POST処理の開始
+    # API設定：バージョンは変えず gemini-3-flash-preview を維持
     api_key = os.environ.get("GEMINI_API_KEY", "").strip()
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key={api_key}"
 
     try:
-        # 【修正ポイント】Flaskの自動パースを使わず、生のデータを取得
+        # 生データの取得と解析
         raw_data = request.data.decode('utf-8')
-        print(f"Raw data received: {raw_data}") # ログで確認
-
         try:
             data = json.loads(raw_data) if raw_data else {}
         except json.JSONDecodeError:
-            # 万が一JSONが壊れていても、無理やり辞書として扱う
             data = request.form.to_dict() if request.form else {}
 
-        thought = data.get('thought', '入力なし')
-        
-        # 思考内容が空の場合のガード
-        if not thought or thought == '入力なし':
+        thought = data.get('thought', '').strip()
+        if not thought:
              return jsonify({"error": "Empty input", "detail": "内容が入力されていません"}), 200
 
-        print(f"Processing thought: {thought}")
-
-# Payloadの作成（カテゴリー名を正しい形式に修正）
+        # ペイロード作成：バージョン変更なし
         payload = {
             "contents": [{"parts": [{"text": f"{SYSTEM_PROMPT}\n\nユーザーの思考: {thought}"}]}],
             "safetySettings": [
-                {
-                    "category": "HARM_CATEGORY_HATE_SPEECH",  # 修正
-                    "threshold": "BLOCK_ONLY_HIGH"
-                },
-                {
-                    "category": "HARM_CATEGORY_HARASSMENT",   # 修正
-                    "threshold": "BLOCK_ONLY_HIGH"
-                },
-                {
-                    "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", # 修正
-                    "threshold": "BLOCK_ONLY_HIGH"
-                },
-                {
-                    "category": "HARM_CATEGORY_DANGEROUS_CONTENT", # 修正
-                    "threshold": "BLOCK_ONLY_HIGH"
-                }
+                {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_ONLY_HIGH"},
+                {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_ONLY_HIGH"},
+                {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_ONLY_HIGH"},
+                {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_ONLY_HIGH"}
             ]
         }
 
-        # Gemini API呼び出し
+        # タイムアウトを少し長めに設定してAPI呼び出し
         response = requests.post(url, json=payload, timeout=25)
         
+        # サーバーエラー（500系）でもJSONを返すようにしてフロントを落とさない
         if response.status_code != 200:
-            print(f"Gemini API Error: {response.text}")
-            return jsonify({"error": "Gemini API Error", "detail": response.text}), response.status_code
+            return jsonify({"error": "Gemini API Error", "detail": "AIサーバー側で問題が発生しました"}), 200
 
         result = response.json()
 
-        # セーフティフィルターチェック
-        candidate = result.get('candidates', [{}])[0]
-        finish_reason = candidate.get('finishReason')
+        # セーフティチェック
+        candidates = result.get('candidates', [{}])
+        if not candidates or 'content' not in candidates[0]:
+            finish_reason = candidates[0].get('finishReason', 'UNKNOWN')
+            return jsonify({"error": "Safety", "detail": f"AIにより制限されました: {finish_reason}"}), 200
 
-        if finish_reason and finish_reason not in ["STOP", "MAX_TOKENS"]:
-            return jsonify({"error": "Safety", "detail": finish_reason}), 200
-
-        # AIのテキスト抽出
+        candidate = candidates[0]
+        
+        # AIテキスト抽出とクリーンアップ
         try:
             ai_text = candidate['content']['parts'][0]['text']
-            # Markdown（```json ... ```）の除去
+            # JSON以外のゴミ（Markdownタグなど）を徹底排除
             clean_json = ai_text.replace('```json', '').replace('```', '').strip()
-            return jsonify(json.loads(clean_json))
+            
+            # パースできるかチェック
+            final_data = json.loads(clean_json)
+            return jsonify(final_data)
+
         except (KeyError, IndexError, json.JSONDecodeError) as e:
-            print(f"Parsing error: {e}")
-            return jsonify({"error": "Safety", "detail": "Invalid AI response format"}), 200
+            print(f"Parse/Format Error: {e}")
+            return jsonify({"error": "Format error", "detail": "AIの回答が正しいJSON形式ではありませんでした"}), 200
 
     except Exception as e:
-        print(f"Server Error: {e}")
-        return jsonify({"error": "Process Error", "detail": str(e)}), 200
+        print(f"Fatal Server Error: {e}")
+        return jsonify({"error": "Process Error", "detail": "分析中に予期せぬエラーが発生しました"}), 200
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 10000))
