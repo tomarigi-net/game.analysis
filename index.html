@@ -55,38 +55,49 @@
         </div>
     </div>
 
-    <script>
-        async function analyzeThought() {
-            const thought = document.getElementById('user-thought').value;
-            if (!thought) return alert('入力してください');
+<script>
+    async function analyzeThought() {
+        const textarea = document.getElementById('user-thought');
+        const thought = textarea.value.trim(); // 空白を削除
+        
+        if (!thought) return alert('やり取りの内容を入力してください');
 
-            document.getElementById('input-section').classList.add('hidden');
-            document.getElementById('loading').classList.remove('hidden');
+        document.getElementById('input-section').classList.add('hidden');
+        document.getElementById('loading').classList.remove('hidden');
 
-            try {
-                const response = await fetch('https://game-analysis.onrender.com/', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ thought: thought })
-                });
+        try {
+            const response = await fetch('https://game-analysis.onrender.com/', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json' // サーバーにJSONを期待していると伝える
+                },
+                body: JSON.stringify({ "thought": thought }) // 確実にJSONとして送る
+            });
 
-                if (!response.ok) throw new Error('Server Error');
-                const data = await response.json();
-                
-                document.getElementById('loading').classList.add('hidden');
-                document.getElementById('result-section').classList.remove('hidden');
-                
-                document.getElementById('game-name').innerText = data.game_name || "心理ゲーム";
-                document.getElementById('game-definition').innerText = data.definition || "";
-                document.getElementById('prediction').innerText = data.prediction || "";
-                document.getElementById('hidden-motive').innerText = data.hidden_motive || "";
-                document.getElementById('advice').innerText = data.advice || "";
-            } catch (err) {
-                console.error(err);
-                alert('サーバーが起動中（約1分かかります）か、接続エラーです。');
-                location.reload();
+            // サーバーからエラー(400など)が返ってきた場合
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                console.error('Server Error:', errorData);
+                throw new Error('Server responded with ' + response.status);
             }
+            
+            const data = await response.json();
+
+            if (!data || data.error === "Safety") {
+                showSafetyWarning();
+            } else {
+                displayResults(data);
+            }
+        } catch (error) {
+            console.error('Fetch Error:', error);
+            alert("通信に失敗しました。サーバーのログに '400' ではなく '200' が出るか確認してください。");
+            document.getElementById('input-section').classList.remove('hidden');
+            document.getElementById('loading').classList.add('hidden');
         }
-    </script>
+    }
+
+    // 他の displayResults, showSafetyWarning, renderBadge 関数はそのまま残してください
+</script>
 </body>
 </html>
