@@ -99,5 +99,5 @@ def home():
         return jsonify({"error": "System error", "detail": f"エラーが発生しました: {str(e)}"}), 200
 
 if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
+    # ポート番号は環境変数から取得。なければ10000番。
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 10000)))
