@@ -7,87 +7,112 @@
     <title>心理ゲーム・アナライザー Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        :root { --game-main: #f8fafc; --game-accent: #6366f1; --game-dark: #1e293b; }
-        body { background-color: var(--game-main); color: var(--game-dark); font-family: sans-serif; }
+        :root {
+            --game-main: #f8fafc;
+            --game-accent: #6366f1;
+            --game-dark: #1e293b;
+        }
+        body { background-color: var(--game-main); color: var(--game-dark); font-family: 'sans-serif'; }
         .game-card { background: white; border: 1px solid #e2e8f0; border-radius: 1.5rem; }
-        .ok-badge { padding: 4px 10px; border-radius: 8px; font-weight: bold; font-size: 0.8rem; min-width: 80px; text-align: center; display: inline-block; }
+        .ok-badge { padding: 2px 8px; border-radius: 6px; font-weight: bold; font-size: 0.75rem; min-width: 80px; text-align: center; display: inline-block; transition: all 0.3s ease; }
         .badge-ok { background: #dcfce7; color: #166534; }
         .badge-not-ok { background: #fee2e2; color: #991b1b; }
         .badge-none { background: #f1f5f9; color: #94a3b8; }
-        .fade-in { animation: fadeIn 0.6s ease-out forwards; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in { animation: fadeIn 0.5s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body class="min-h-screen pb-12">
 
     <div class="max-w-2xl mx-auto px-4 py-10">
         <header class="text-center mb-10">
-            <h1 class="text-3xl font-bold text-indigo-900">心理ゲーム・アナライザー</h1>
-            <p class="text-indigo-600 mt-2 font-medium">無意識のシナリオを暴く</p>
+            <h1 class="text-3xl font-bold text-indigo-900 leading-tight">心理ゲーム・アナライザー</h1>
+            <p class="text-indigo-600 mt-2 font-medium">「OK <-> not OK」の変遷から、隠されたシナリオを暴く</p>
         </header>
 
         <div id="input-section" class="game-card shadow-xl p-8 space-y-6 border-t-4 border-indigo-500">
-            <label class="block text-lg font-bold text-slate-700">やり取りの内容を入力してください</label>
-            <textarea id="user-thought" class="w-full h-40 p-4 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-400 outline-none bg-slate-50 transition" placeholder="アドバイスしたのに不機嫌になられた、等"></textarea>
-            <button onclick="analyzeThought()" id="submit-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-2xl transition shadow-lg text-lg">分析を開始する</button>
+            <div>
+                <label class="block text-lg font-bold mb-3 text-slate-700">今、どんなやり取りがありましたか？</label>
+                <textarea id="user-thought" class="w-full h-32 p-4 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-400 focus:border-transparent outline-none bg-slate-50 transition placeholder-slate-400" placeholder="例：良かれと思ってアドバイスしたのに、相手が不機嫌になり、最後は私もイライラしてしまった。"></textarea>
+            </div>
+
+            <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start space-x-3">
+                <span class="text-amber-500 mt-0.5 text-lg">⚠️</span>
+                <div class="text-[11px] md:text-xs text-amber-900 leading-relaxed">
+                    <p class="font-bold mb-1 underline">ご利用上の注意</p>
+                    深刻なリスク（自傷・他害等）を伴う内容はAIがブロックしエラーとなります。また、無料枠のため混雑時は「503」や「429」エラーが出ますが、その場合は数分置いてから再試行してください。
+                </div>
+            </div>
+
+            <button onclick="analyzeThought()" id="submit-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-2xl transition-all shadow-lg shadow-indigo-200 text-lg">
+                深層心理を分析する
+            </button>
         </div>
 
-        <div id="loading" class="hidden text-center py-20">
-            <div class="inline-block animate-spin rounded-full h-14 w-14 border-4 border-indigo-500 border-t-transparent"></div>
-            <p class="mt-6 text-indigo-800 font-bold text-lg">深層心理を解析中...</p>
+        <div id="loading" class="hidden text-center py-16">
+            <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-indigo-500 border-t-transparent"></div>
+            <p class="mt-6 text-indigo-800 font-bold">無意識のポジション遷移を解析中...</p>
         </div>
 
         <div id="result-section" class="hidden space-y-6 mt-8 fade-in">
             <div class="game-card p-6 shadow-md border-l-8 border-indigo-600">
-                <h3 class="text-xs font-bold text-indigo-400 uppercase mb-1">特定されたゲーム</h3>
+                <h3 class="text-xs font-bold text-indigo-400 uppercase tracking-widest mb-1">特定された心理ゲーム</h3>
                 <div id="game-name" class="text-2xl font-black text-indigo-900 mb-2"></div>
-                <p id="game-definition" class="text-sm text-slate-500 italic border-t pt-2"></p>
+                <p id="game-definition" class="text-sm text-slate-500 leading-relaxed italic border-t pt-2"></p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="game-card p-5 bg-blue-50/30">
-                    <h4 class="text-blue-700 font-bold text-sm mb-3">▶ 開始時の立ち位置</h4>
+                <div class="game-card p-5 border-blue-100 bg-blue-50/30">
+                    <h4 class="text-blue-700 font-bold text-sm mb-3 flex items-center"><span class="mr-2">▶</span> 開始時の立ち位置</h4>
                     <div class="flex justify-between items-center mb-2">
                         <span id="pos-start-self" class="ok-badge"></span>
+                        <span class="text-slate-400">/</span>
                         <span id="pos-start-others" class="ok-badge"></span>
                     </div>
-                    <p id="pos-start-desc" class="text-xs text-slate-600"></p>
+                    <p id="pos-start-desc" class="text-xs text-slate-600 leading-tight"></p>
                 </div>
-                <div class="game-card p-5 bg-rose-50/30">
-                    <h4 class="text-rose-700 font-bold text-sm mb-3">▼ 結末の立ち位置</h4>
+                <div class="game-card p-5 border-rose-100 bg-rose-50/30">
+                    <h4 class="text-rose-700 font-bold text-sm mb-3 flex items-center"><span class="mr-2">▼</span> 結末の立ち位置</h4>
                     <div class="flex justify-between items-center mb-2">
                         <span id="pos-end-self" class="ok-badge"></span>
+                        <span class="text-slate-400">/</span>
                         <span id="pos-end-others" class="ok-badge"></span>
                     </div>
-                    <p id="pos-end-desc" class="text-xs text-slate-600"></p>
+                    <p id="pos-end-desc" class="text-xs text-slate-600 leading-tight"></p>
                 </div>
             </div>
 
-            <div class="bg-slate-900 text-white rounded-3xl p-8 shadow-2xl">
-                <h3 class="text-indigo-400 text-xs font-bold uppercase mb-3">⚠️ このまま進んだ場合の「破綻」</h3>
-                <p id="prediction" class="text-xl leading-relaxed font-bold"></p>
+            <div id="prediction-box" class="bg-slate-900 text-white rounded-3xl p-8 shadow-2xl relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-4 opacity-10 text-6xl font-black">!</div>
+                <h3 class="text-indigo-400 text-sm font-bold uppercase mb-3">⚠️ このまま進んだ場合の「破綻」の結末</h3>
+                <p id="prediction" class="text-xl leading-relaxed font-bold text-white"></p>
             </div>
 
-            <div class="bg-white border border-slate-200 rounded-2xl p-6">
-                <h3 class="font-bold text-slate-800 mb-2">🔍 無意識の真実（利得）</h3>
-                <p id="hidden-motive" class="text-slate-600 text-base leading-relaxed"></p>
+            <div class="grid grid-cols-1 gap-4">
+                <div class="bg-white border border-slate-200 rounded-2xl p-6">
+                    <h3 class="font-bold text-slate-800 mb-2 flex items-center"><span class="mr-2 text-indigo-500">🔍</span> 無意識の真実（心理社会的利得）</h3>
+                    <p id="hidden-motive" class="text-slate-600 text-base leading-relaxed"></p>
+                </div>
+                <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-6">
+                    <h3 class="font-bold text-emerald-800 mb-2 flex items-center"><span class="mr-2">💡</span> この結末を回避するには...</h3>
+                    <p id="advice" class="text-emerald-900 font-bold text-base leading-relaxed"></p>
+                </div>
             </div>
 
-            <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-6">
-                <h3 class="font-bold text-emerald-800 mb-2">💡 回避策</h3>
-                <p id="advice" class="text-emerald-900 font-bold text-base"></p>
-            </div>
-
-            <button onclick="location.reload()" class="w-full py-6 text-slate-400 hover:text-indigo-600 font-bold">← 最初に戻る</button>
+            <button onclick="location.reload()" class="w-full py-6 text-slate-400 hover:text-indigo-600 font-bold transition-all">
+                ← 別のパターンを分析する
+            </button>
         </div>
     </div>
 
     <script>
         const API_URL = 'https://game-analysis.onrender.com/';
 
+        window.addEventListener('DOMContentLoaded', () => { fetch(API_URL).catch(() => {}); });
+
         async function analyzeThought() {
             const thought = document.getElementById('user-thought').value.trim();
-            if (!thought) { alert("内容を入力してください"); return; }
+            if (!thought) { alert('内容を入力してください'); return; }
 
             document.getElementById('input-section').classList.add('hidden');
             document.getElementById('loading').classList.remove('hidden');
@@ -96,16 +121,27 @@
                 const response = await fetch(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ thought: thought })
+                    body: JSON.stringify({ "thought": thought })
                 });
 
+                if (!response.ok) {
+                    if (response.status === 503 || response.status === 429) {
+                        throw new Error(`AIが混み合っています(${response.status})。1分ほど待ってからお試しください。`);
+                    }
+                    throw new Error(`通信エラー(${response.status})。時間をおいて再送してください。`);
+                }
+
                 const data = await response.json();
-                console.log("Raw Server Response:", data);
-                displayResults(data);
+                
+                if (data.error) {
+                    showSafetyWarning(data.detail || "AIが回答を控えました。");
+                } else {
+                    displayResults(data);
+                }
             } catch (error) {
-                console.error("Error:", error);
-                alert("エラーが発生しました。時間を置いてリロードしてください。");
-                location.reload();
+                alert(`分析を中断しました: ${error.message}`);
+                document.getElementById('input-section').classList.remove('hidden');
+                document.getElementById('loading').classList.add('hidden');
             }
         }
 
@@ -113,37 +149,50 @@
             document.getElementById('loading').classList.add('hidden');
             document.getElementById('result-section').classList.remove('hidden');
 
-            // データ救出関数：ネストや名前の揺れを全て吸収
-            const get = (keys) => {
+            // 【データ救出ヘルパー】AIがどんな名前で返してきても対応
+            const find = (keys) => {
                 for (let k of keys) { 
                     if (data[k] && data[k] !== "-" && data[k] !== "分析中...") return data[k]; 
                 }
-                return "データなし";
+                return "分析完了";
             };
 
-            document.getElementById('game-name').innerText = get(['game_name', 'gameName', 'title']);
-            document.getElementById('game-definition').innerText = get(['definition', 'description', 'meaning']);
-            document.getElementById('prediction').innerText = get(['prediction', 'future', 'outcome']);
-            document.getElementById('hidden-motive').innerText = get(['hidden_motive', 'payoff', 'motive', 'truth']);
-            document.getElementById('advice').innerText = get(['advice', 'exit_strategy', 'solution']);
+            document.getElementById('game-name').innerText = find(['game_name', 'gameName', 'title']);
+            document.getElementById('game-definition').innerText = find(['definition', 'description', 'meaning']);
+            document.getElementById('prediction').innerText = find(['prediction', 'future', 'future_prediction']);
+            document.getElementById('hidden-motive').innerText = find(['hidden_motive', 'payoff', 'motive']);
+            document.getElementById('advice').innerText = find(['advice', 'exit_strategy', 'solution']);
 
-            // ポジションデータの解析（AIがネストさせてくる場合に対応）
             const start = data.position_start || data.start_position || {};
-            renderBadge('pos-start-self', start.self || data.start_self || "-");
-            renderBadge('pos-start-others', start.others || data.start_others || "-");
-            document.getElementById('pos-start-desc').innerText = start.description || data.start_desc || "";
+            renderBadge('pos-start-self', start.self || "-");
+            renderBadge('pos-start-others', start.others || "-");
+            document.getElementById('pos-start-desc').innerText = start.description || "";
 
             const end = data.position_end || data.end_position || {};
-            renderBadge('pos-end-self', end.self || data.end_self || "-");
-            renderBadge('pos-end-others', end.others || data.end_others || "-");
-            document.getElementById('pos-end-desc').innerText = end.description || data.end_desc || "";
+            renderBadge('pos-end-self', end.self || "-");
+            renderBadge('pos-end-others', end.others || "-");
+            document.getElementById('pos-end-desc').innerText = end.description || "";
         }
 
         function renderBadge(id, text) {
             const el = document.getElementById(id);
-            const val = String(text || "-").toUpperCase();
-            el.innerText = val;
-            el.className = 'ok-badge ' + (val.includes('NOT') ? 'badge-not-ok' : (val.includes('OK') ? 'badge-ok' : 'badge-none'));
+            if (!el) return;
+            const safeText = String(text || "-").toUpperCase();
+            el.innerText = safeText;
+            el.className = 'ok-badge';
+            if (safeText.includes('NOT')) el.classList.add('badge-not-ok');
+            else if (safeText.includes('OK')) el.classList.add('badge-ok');
+            else el.classList.add('badge-none');
+        }
+
+        function showSafetyWarning(detail) {
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('result-section').classList.remove('hidden');
+            document.getElementById('game-name').innerText = "⚠️ 解析制限";
+            document.getElementById('game-definition').innerText = "制限ポリシーまたは混雑";
+            document.getElementById('prediction').innerText = "現在の内容では詳細な分析ができませんでした。";
+            document.getElementById('hidden-motive').innerText = detail;
+            document.getElementById('advice').innerText = "日常のささいな出来事を具体的に書くと、分析が通りやすくなります。";
         }
     </script>
 </body>
