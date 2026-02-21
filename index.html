@@ -19,7 +19,6 @@
     </style>
 </head>
 <body class="min-h-screen pb-12">
-
     <div class="max-w-2xl mx-auto px-4 py-10">
         <header class="text-center mb-10">
             <h1 class="text-3xl font-bold text-indigo-900 leading-tight">心理ゲーム・アナライザー</h1>
@@ -31,6 +30,15 @@
                 <label class="block text-lg font-bold mb-3 text-slate-700">今、どんなやり取りがありましたか？</label>
                 <textarea id="user-thought" class="w-full h-32 p-4 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-400 outline-none bg-slate-50 transition" placeholder="例：良かれと思ってアドバイスしたのに..."></textarea>
             </div>
+            
+            <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start space-x-3">
+                <span class="text-amber-500 mt-0.5 text-lg">⚠️</span>
+                <div class="text-[11px] md:text-xs text-amber-900 leading-relaxed">
+                    <p class="font-bold mb-1 underline">ご利用上の注意</p>
+                    深刻なリスク（自傷・他害等）を伴う内容はAIがブロックしエラーとなります。また、無料枠のため混雑時は「503」や「429」エラーが出ますが、その場合は数分置いてから再試行してください。
+                </div>
+            </div>
+
             <button onclick="analyzeThought()" id="submit-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-2xl transition-all shadow-lg text-lg">
                 深層心理を分析する
             </button>
@@ -82,4 +90,73 @@
                 <p id="advice" class="text-emerald-900 font-bold text-base">-</p>
             </div>
 
-            <button onclick="resetDisplay()" class="w
+            <button onclick="resetDisplay()" class="w-full py-6 text-slate-400 hover:text-indigo-600 font-bold">別のパターンを分析する</button>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://game-analysis.onrender.com/';
+
+        function resetDisplay() {
+            document.getElementById('user-thought').value = "";
+            document.getElementById('result-section').classList.add('hidden');
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('input-section').classList.remove('hidden');
+        }
+
+        async function analyzeThought() {
+            const thought = document.getElementById('user-thought').value.trim();
+            if (!thought) return;
+            const btn = document.getElementById('submit-btn');
+            if (btn) btn.disabled = true;
+            document.getElementById('input-section').classList.add('hidden');
+            document.getElementById('loading').classList.remove('hidden');
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ "thought": thought })
+                });
+                if (!response.ok) throw new Error(response.status);
+                const data = await response.json();
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('result-section').classList.remove('hidden');
+                const val = (keys, obj) => {
+                    if (!obj) return "-";
+                    for (let k of keys) { if (obj[k] !== undefined && obj[k] !== null) return obj[k]; }
+                    return "-";
+                };
+                const updateB = (id, text) => {
+                    const el = document.getElementById(id);
+                    if (!el) return;
+                    const v = String(text || "-").toUpperCase();
+                    el.innerText = v;
+                    let c = 'badge-none';
+                    if (v.includes('NOT')) c = 'badge-not-ok';
+                    else if (v.includes('OK')) c = 'badge-ok';
+                    el.className = 'ok-badge ' + c;
+                };
+                document.getElementById('game-name').innerText = val(['game_name', 'gameName', '心理ゲーム'], data);
+                document.getElementById('game-definition').innerText = val(['definition', 'description', '定義'], data);
+                document.getElementById('prediction').innerText = val(['prediction', 'future', '予測'], data);
+                document.getElementById('hidden-motive').innerText = val(['hidden_motive', 'payoff', '利得'], data);
+                document.getElementById('advice').innerText = val(['advice', 'solution', '助言'], data);
+                const s = data.position_start || data.start_position || {};
+                const e = data.position_end || data.end_position || {};
+                updateB('pos-start-self', val(['self'], s));
+                updateB('pos-start-others', val(['others'], s));
+                document.getElementById('pos-start-desc').innerText = val(['description'], s);
+                updateB('pos-end-self', val(['self'], e));
+                updateB('pos-end-others', val(['others'], e));
+                document.getElementById('pos-end-desc').innerText = val(['description'], e);
+            } catch (error) {
+                console.error(error);
+                alert("エラーが発生しました。混雑している場合は時間を置いてお試しください。");
+                location.reload();
+            } finally {
+                if (btn) btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
