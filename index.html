@@ -35,7 +35,7 @@
                 <span class="text-amber-500 mt-0.5 text-lg">⚠️</span>
                 <div class="text-[11px] md:text-xs text-amber-900 leading-relaxed">
                     <p class="font-bold mb-1 underline">ご利用上の注意</p>
-                    深刻なリスク（自傷・他害等）を伴う内容はAIがブロックしエラーとなります。また、無料枠のため混雑時は「503」や「429」エラーが出ますが、その場合は数分置いてから再試行してください。
+                    深刻なリスク（自傷・他害等）を伴う内容はAIがブロックしエラーとなります。また、無料枠のため混雑時は数分置いてから再試行してください。
                 </div>
             </div>
 
@@ -97,20 +97,45 @@
     <script>
         const API_URL = 'https://game-analysis.onrender.com/';
 
+        // リセット処理：古いデータを確実に消し、入力画面に戻す
         function resetDisplay() {
+            // 1. 入力欄をクリア
             document.getElementById('user-thought').value = "";
+            
+            // 2. セクションの切り替え
             document.getElementById('result-section').classList.add('hidden');
             document.getElementById('loading').classList.add('hidden');
             document.getElementById('input-section').classList.remove('hidden');
+            
+            // 3. ボタンを有効化
             const btn = document.getElementById('submit-btn');
             if (btn) btn.disabled = false;
+            
+            // 4. 前回の表示内容を初期化（「-」に戻す）
+            const resetIds = ['game-name', 'game-definition', 'prediction', 'hidden-motive', 'advice', 'pos-start-desc', 'pos-end-desc'];
+            resetIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.innerText = "-";
+            });
+            ['pos-start-self', 'pos-start-others', 'pos-end-self', 'pos-end-others'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.innerText = "-";
+                    el.className = 'ok-badge badge-none';
+                }
+            });
+            
+            // ページの一番上へスクロール
+            window.scrollTo(0, 0);
         }
 
         async function analyzeThought() {
             const thought = document.getElementById('user-thought').value.trim();
             if (!thought) return;
+            
             const btn = document.getElementById('submit-btn');
             if (btn) btn.disabled = true;
+            
             document.getElementById('input-section').classList.add('hidden');
             document.getElementById('loading').classList.remove('hidden');
             
@@ -124,16 +149,27 @@
                 if (!response.ok) throw new Error(response.status);
                 let data = await response.json();
                 
-                // 【強化点】もし中身がさらにJSON文字列だった場合、自動でパースする
+                // データが文字列で届いた場合の保険
                 if (typeof data === 'string') data = JSON.parse(data);
-                console.log("FINAL-DATA:", data);
+                
+                // もしAPI側でエラーメッセージが返ってきた場合
+                if (data.error || data.detail) {
+                    const errorMsg = data.error?.message || data.detail || "制限がかかりました。";
+                    if (errorMsg.includes("429") || errorMsg.includes("quota")) {
+                        alert("短時間に何度も分析したため、制限がかかりました。1分ほど待ってから再度お試しください。");
+                    } else {
+                        alert("分析中にエラーが発生しました。");
+                    }
+                    resetDisplay();
+                    return;
+                }
 
                 document.getElementById('loading').classList.add('hidden');
                 document.getElementById('result-section').classList.remove('hidden');
                 
                 const getVal = (o, k) => {
                     if (!o) return "-";
-                    for (let x of k) { if (o[x]) return o[x]; }
+                    for (let x of k) { if (o[x] !== undefined && o[x] !== null && o[x] !== "") return o[x]; }
                     return "-";
                 };
 
@@ -145,6 +181,7 @@
                     el.className = 'ok-badge ' + (v.includes('NOT') ? 'badge-not-ok' : v.includes('OK') ? 'badge-ok' : 'badge-none');
                 };
 
+                // 各項目への流し込み
                 document.getElementById('game-name').innerText = getVal(data, ['game_name', 'gameName', '心理ゲーム', 'name']);
                 document.getElementById('game-definition').innerText = getVal(data, ['definition', 'description', '定義', '解説']);
                 document.getElementById('prediction').innerText = getVal(data, ['prediction', 'future', '予測', '破綻']);
@@ -164,7 +201,7 @@
 
             } catch (err) {
                 console.error("ANALYSIS-ERROR:", err);
-                alert("エラーが発生しました。");
+                alert("エラーが発生しました。混雑している可能性があるため、時間を置いてお試しください。");
                 resetDisplay();
             } finally {
                 if (btn) btn.disabled = false;
