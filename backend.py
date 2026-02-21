@@ -29,11 +29,20 @@ def home():
         if not thought:
             return jsonify({"error": "Empty input"}), 200
 
-        # AIへの指示（プロンプト）
+        # AIへの指示（プロンプト）：HTML側のJSが探しているキー名と完全に一致させる
         prompt = (
-            "交流分析のエキスパートとして、以下の内容を分析し、必ずJSON形式で回答してください。\n"
-            "【出力形式】\n"
-            '{"game_name": "名称", "definition": "定義", "position_start": {"self": "OK or NOT OK", "others": "OK or NOT OK", "description": "解説"}, "position_end": {"self": "OK or NOT OK", "others": "OK or NOT OK", "description": "解説"}, "prediction": "予測", "hidden_motive": "利得", "advice": "回避策"}\n'
+            "交流分析のエキスパートとして、以下の内容を分析し、必ず指定のJSON形式のみで回答してください。\n"
+            "JSON以外の説明テキスト、Markdownの装飾（```jsonなど）は一切含めないでください。\n\n"
+            "【厳守するJSON構造】\n"
+            "{\n"
+            '  "game_name": "名称",\n'
+            '  "definition": "定義",\n'
+            '  "position_start": {"self": "OK or NOT OK", "others": "OK or NOT OK", "description": "解説"},\n'
+            '  "position_end": {"self": "OK or NOT OK", "others": "OK or NOT OK", "description": "解説"},\n'
+            '  "prediction": "予測の内容",\n'
+            '  "hidden_motive": "無意識の利得の内容",\n'
+            '  "advice": "回避策の内容"\n'
+            "}\n\n"
             f"【分析対象】: {thought}"
         )
 
@@ -62,13 +71,21 @@ def home():
             
             try:
                 parsed_json = json.loads(clean_text)
+                # HTML側が期待する全てのキーが存在するかチェックし、なければ補完する
+                expected_keys = ["game_name", "definition", "prediction", "hidden_motive", "advice"]
+                for key in expected_keys:
+                    if key not in parsed_json:
+                        parsed_json[key] = "分析完了（詳細データなし）"
+                
                 return jsonify(parsed_json)
             except json.JSONDecodeError:
                 # パース失敗時の救済措置
                 return jsonify({
                     "game_name": "分析完了",
                     "definition": "解析結果の整形に失敗しましたが、内容は以下の通りです。",
-                    "prediction": clean_text[:300]
+                    "prediction": clean_text[:300],
+                    "hidden_motive": "抽出失敗",
+                    "advice": "もう一度お試しください。"
                 })
         else:
             return jsonify({"error": "No response from AI"}), 200
