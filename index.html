@@ -43,24 +43,34 @@
                 <p class="text-indigo-600 mt-2 font-medium">「OK <-> not OK」の入れ替わりから、隠されたシナリオを暴く</p>
             </header>
 
-            <div id="input-section" class="game-card shadow-xl p-8 space-y-6 border-t-4 border-indigo-500">
-                <div class="flex items-center justify-between bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                    <div>
-                        <span class="block font-bold text-slate-700 text-sm">エリック・バーン限定モード</span>
-                        <span class="text-[10px] text-slate-500">「Games People Play」収録の36種から特定</span>
+            <div id="input-section" class="space-y-4">
+                <div class="game-card shadow-xl p-8 space-y-6 border-t-4 border-indigo-500">
+                    <div class="flex items-center justify-between bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                        <div>
+                            <span class="block font-bold text-slate-700 text-sm">エリック・バーン限定モード</span>
+                            <span class="text-[10px] text-slate-500">「Games People Play」収録の36種から特定</span>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="mode-toggle" checked>
+                            <span class="slider"></span>
+                        </label>
                     </div>
-                    <label class="switch">
-                        <input type="checkbox" id="mode-toggle" checked>
-                        <span class="slider"></span>
-                    </label>
+                    <div>
+                        <label class="block text-lg font-bold mb-1 text-slate-700">どんなやり取りがありましたか？</label>
+                        <p class="text-xs text-slate-500 mb-3">※表面的な会話だけでなく、その時感じた「モヤモヤ」や「違和感」も含めて入力すると精度が上がります。</p>
+                        <textarea id="user-thought" class="w-full h-40 p-4 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-400 outline-none bg-slate-50 transition" 
+                            placeholder="例：部下のミスを指摘したら、最初は謝っていたのに、最後にはなぜか私が責められているような気分になった..."></textarea>
+                    </div>
+                    <button onclick="analyzeThought()" id="submit-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-2xl transition-all shadow-lg text-lg">深層心理を分析する</button>
                 </div>
-                <div>
-                    <label class="block text-lg font-bold mb-1 text-slate-700">どんなやり取りがありましたか？</label>
-                    <p class="text-xs text-slate-500 mb-3">※表面的な会話だけでなく、その時感じた「モヤモヤ」や「違和感」も含めて入力すると精度が上がります。</p>
-                    <textarea id="user-thought" class="w-full h-40 p-4 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-400 outline-none bg-slate-50 transition" 
-                        placeholder="例：部下のミスを指摘したら、最初は謝っていたのに、最後にはなぜか私が責められているような気分になった..."></textarea>
+
+                <div class="flex gap-3 bg-amber-50 border border-amber-100 rounded-2xl p-4">
+                    <span class="text-amber-500 mt-0.5 text-lg">⚠️</span>
+                    <div class="text-[11px] md:text-xs text-amber-900 leading-relaxed">
+                        <p class="font-bold mb-1 underline">ご利用上の注意</p>
+                        深刻なリスク（自傷・他害等）を伴う内容はAIがブロックしエラーとなります。また、無料枠のため混雑時は「503」や「429」エラーが出ますが、その場合は数分置いてから再試行してください。なお通常、結果が出るまで1分程かかる場合があります。
+                    </div>
                 </div>
-                <button onclick="analyzeThought()" id="submit-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-2xl transition-all shadow-lg text-lg">深層心理を分析する</button>
             </div>
 
             <div id="loading" class="hidden text-center py-16">
@@ -209,7 +219,6 @@
                     el.className = 'ok-badge ' + (v.includes('NOT') ? 'badge-not-ok' : v.includes('OK') ? 'badge-ok' : 'badge-none');
                 };
 
-                // --- ここで英語名を併記する処理 ---
                 const jpName = getVal(data, ['game_name', 'gameName', '心理ゲーム']);
                 const enName = getVal(data, ['english_name', 'englishName', '英語名']);
                 
@@ -218,7 +227,6 @@
                 } else {
                     document.getElementById('game-name').innerText = jpName;
                 }
-                // -------------------------------
 
                 document.getElementById('game-definition').innerText = getVal(data, ['definition', '解説']);
                 document.getElementById('game-scenario').innerText = getVal(data, ['scenario', '要約']);
