@@ -17,7 +17,6 @@ def home():
         return jsonify({"status": "online", "message": "Gemini 3 Flash Ready!"})
 
     api_key = os.environ.get("GEMINI_API_KEY", "").strip()
-    # モデル名をご指定の通り gemini-3-flash-preview に固定
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key={api_key}"
 
     try:
@@ -27,7 +26,6 @@ def home():
         if not thought:
             return jsonify({"error": "Empty input"}), 200
 
-        # HTML側のJSが探しているキー名と完全に一致させるプロンプト
         prompt = (
             "交流分析のエキスパートとして、以下の内容を分析し、必ず指定のJSON形式のみで回答してください。\n"
             "JSON以外の説明テキスト、Markdownの装飾（```jsonなど）は一切含めないでください。\n\n"
@@ -61,18 +59,28 @@ def home():
         
         if 'candidates' in result and result['candidates']:
             ai_text = result['candidates'][0]['content']['parts'][0]['text'].strip()
-            clean_text = re.sub(r'^```json\s*|```$', '', ai_text, flags=re.MULTILINE).strip()
+            
+            # --- 強化された抽出ロジック ---
+            # 1. Markdownタグを削除
+            clean_text = re.sub(r'```json\s*|```', '', ai_text)
+            
+            # 2. 最初と最後の波括弧 { } の範囲を強制抽出（余計な説明文をカット）
+            start_idx = clean_text.find('{')
+            end_idx = clean_text.rfind('}')
+            if start_idx != -1 and end_idx != -1:
+                clean_text = clean_text[start_idx:end_idx+1]
             
             try:
                 parsed_json = json.loads(clean_text)
                 return jsonify(parsed_json)
             except json.JSONDecodeError:
+                # パース失敗時も、ブラウザが落ちないようJSON形式でエラー内容を返す
                 return jsonify({
-                    "game_name": "分析完了",
-                    "definition": "解析結果の整形に失敗しましたが、内容は以下の通りです。",
-                    "prediction": clean_text[:300],
+                    "game_name": "解析成功（整形のみ失敗）",
+                    "definition": "AIが特殊な形式で回答したため、一部表示を調整しました。",
+                    "prediction": clean_text[:500],
                     "hidden_motive": "抽出失敗",
-                    "advice": "もう一度お試しください。"
+                    "advice": "もう一度送信するか、内容を簡潔にしてお試しください。"
                 })
         else:
             return jsonify({"error": "No response from AI"}), 200
@@ -80,9 +88,6 @@ def home():
     except Exception as e:
         return jsonify({"error": "System error", "detail": str(e)}), 200
 
-# --- Renderでポートを開くための必須設定 ---
 if __name__ == "__main__":
-    # Renderは環境変数 PORT でポートを指定するため、それを優先的に読み込みます
     port = int(os.environ.get("PORT", 10000)) 
-    # host="0.0.0.0" により外部からのリクエストを受け付け可能にします
     app.run(host="0.0.0.0", port=port)
