@@ -4,7 +4,7 @@
     <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests; connect-src 'self' https://game-analysis.onrender.com https://cdn.tailwindcss.com;">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>心理ゲーム・アナライザー Pro</title>
+    <title>心理ゲーム・アナライザー (Private)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         :root { --game-main: #f8fafc; --game-accent: #6366f1; --game-dark: #1e293b; }
@@ -14,34 +14,33 @@
         .badge-ok { background: #dcfce7; color: #166534; }
         .badge-not-ok { background: #fee2e2; color: #991b1b; }
         .badge-none { background: #f1f5f9; color: #94a3b8; }
+        .hidden { display: none !important; }
         .fade-in { animation: fadeIn 0.5s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body class="min-h-screen pb-12">
-    <div class="max-w-2xl mx-auto px-4 py-10">
+    <div id="login-screen" class="max-w-md mx-auto px-4 py-20">
+        <div class="game-card shadow-2xl p-8 text-center border-t-4 border-indigo-500">
+            <h2 class="text-xl font-bold text-indigo-900 mb-6">Private Access</h2>
+            <input type="password" id="pass-input" class="w-full p-4 border rounded-2xl mb-4 text-center outline-none focus:ring-2 focus:ring-indigo-400" placeholder="Password">
+            <button onclick="checkPassword()" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-2xl hover:bg-indigo-700 transition">Enter</button>
+            <p id="login-error" class="text-rose-500 text-sm mt-4 hidden">Invalid password</p>
+        </div>
+    </div>
+
+    <div id="main-app" class="hidden max-w-2xl mx-auto px-4 py-10">
         <header class="text-center mb-10">
             <h1 class="text-3xl font-bold text-indigo-900 leading-tight">心理ゲーム・アナライザー</h1>
-            <p class="text-indigo-600 mt-2 font-medium">「OK <-> not OK」の変遷から、隠されたシナリオを暴く</p>
+            <p class="text-indigo-600 mt-2 font-medium">Private Mode Active</p>
         </header>
 
         <div id="input-section" class="game-card shadow-xl p-8 space-y-6 border-t-4 border-indigo-500">
             <div>
-                <label class="block text-lg font-bold mb-3 text-slate-700">今、どんなやり取りがありましたか？</label>
-                <textarea id="user-thought" class="w-full h-32 p-4 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-400 outline-none bg-slate-50 transition" placeholder="例：良かれと思ってアドバイスしたのに..."></textarea>
+                <label class="block text-lg font-bold mb-3 text-slate-700">やり取りの記録</label>
+                <textarea id="user-thought" class="w-full h-32 p-4 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-400 outline-none bg-slate-50 transition" placeholder="内容を入力してください"></textarea>
             </div>
-
-            <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start space-x-3">
-                <span class="text-amber-500 mt-0.5 text-lg">⚠️</span>
-                <div class="text-[11px] md:text-xs text-amber-900 leading-relaxed">
-                    <p class="font-bold mb-1 underline">ご利用上の注意</p>
-                    深刻なリスク（自傷・他害等）を伴う内容はAIがブロックしエラーとなります。また、無料枠のため混雑時は数分置いてから再試行してください。
-                </div>
-            </div>
-
-            <button onclick="analyzeThought()" id="submit-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-2xl transition-all shadow-lg text-lg">
-                深層心理を分析する
-            </button>
+            <button onclick="analyzeThought()" id="submit-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-2xl transition-all shadow-lg text-lg">分析</button>
         </div>
 
         <div id="loading" class="hidden text-center py-16">
@@ -51,14 +50,14 @@
 
         <div id="result-section" class="hidden space-y-6 mt-8 fade-in">
             <div class="game-card p-6 shadow-md border-l-8 border-indigo-600">
-                <h3 class="text-xs font-bold text-indigo-400 uppercase tracking-widest mb-1">特定された心理ゲーム</h3>
+                <h3 class="text-xs font-bold text-indigo-400 uppercase tracking-widest mb-1">GAME NAME</h3>
                 <div id="game-name" class="text-2xl font-black text-indigo-900 mb-2">-</div>
                 <p id="game-definition" class="text-sm text-slate-500 italic border-t pt-2"></p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="game-card p-5 bg-blue-50/30">
-                    <h4 class="text-blue-700 font-bold text-sm mb-3">▶ 開始時の立ち位置</h4>
+                    <h4 class="text-blue-700 font-bold text-sm mb-3">START POSITION</h4>
                     <div class="flex justify-between items-center mb-2">
                         <span id="pos-start-self" class="ok-badge badge-none">-</span>
                         <span id="pos-start-others" class="ok-badge badge-none">-</span>
@@ -66,7 +65,7 @@
                     <p id="pos-start-desc" class="text-xs text-slate-600"></p>
                 </div>
                 <div class="game-card p-5 bg-rose-50/30">
-                    <h4 class="text-rose-700 font-bold text-sm mb-3">▼ 結末の立ち位置</h4>
+                    <h4 class="text-rose-700 font-bold text-sm mb-3">END POSITION</h4>
                     <div class="flex justify-between items-center mb-2">
                         <span id="pos-end-self" class="ok-badge badge-none">-</span>
                         <span id="pos-end-others" class="ok-badge badge-none">-</span>
@@ -76,66 +75,62 @@
             </div>
 
             <div id="prediction-box" class="bg-slate-900 text-white rounded-3xl p-8 shadow-2xl relative overflow-hidden">
-                <h3 class="text-indigo-400 text-sm font-bold uppercase mb-3">⚠️ このまま進んだ場合の「破綻」</h3>
+                <h3 class="text-indigo-400 text-sm font-bold uppercase mb-3">FUTURE</h3>
                 <p id="prediction" class="text-xl leading-relaxed font-bold">-</p>
             </div>
 
             <div class="bg-white border border-slate-200 rounded-2xl p-6">
-                <h3 class="font-bold text-slate-800 mb-2">🔍 無意識の真実（利得）</h3>
+                <h3 class="font-bold text-slate-800 mb-2">HIDDEN MOTIVE</h3>
                 <p id="hidden-motive" class="text-slate-600 text-base">-</p>
             </div>
 
             <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-6">
-                <h3 class="font-bold text-emerald-800 mb-2">💡 回避策</h3>
+                <h3 class="font-bold text-emerald-800 mb-2">ADVICE</h3>
                 <p id="advice" class="text-emerald-900 font-bold text-base">-</p>
             </div>
 
-            <button onclick="resetDisplay()" class="w-full py-6 text-slate-400 hover:text-indigo-600 font-bold">別のパターンを分析する</button>
+            <button onclick="resetDisplay()" class="w-full py-6 text-slate-400 hover:text-indigo-600 font-bold">NEXT ANALYSIS</button>
         </div>
     </div>
 
     <script>
         const API_URL = 'https://game-analysis.onrender.com/';
+        const MY_PASSWORD = "izumi"; 
 
-        // リセット処理：古いデータを確実に消し、入力画面に戻す
+        function checkPassword() {
+            const input = document.getElementById('pass-input').value;
+            const error = document.getElementById('login-error');
+            if (input === MY_PASSWORD) {
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('main-app').classList.remove('hidden');
+                sessionStorage.setItem('isLoggedIn', 'true');
+            } else {
+                error.classList.remove('hidden');
+            }
+        }
+
+        window.onload = () => {
+            if (sessionStorage.getItem('isLoggedIn') === 'true') {
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('main-app').classList.remove('hidden');
+            }
+        };
+
         function resetDisplay() {
-            // 1. 入力欄をクリア
             document.getElementById('user-thought').value = "";
-            
-            // 2. セクションの切り替え
             document.getElementById('result-section').classList.add('hidden');
             document.getElementById('loading').classList.add('hidden');
             document.getElementById('input-section').classList.remove('hidden');
-            
-            // 3. ボタンを有効化
             const btn = document.getElementById('submit-btn');
             if (btn) btn.disabled = false;
-            
-            // 4. 前回の表示内容を初期化（「-」に戻す）
-            const resetIds = ['game-name', 'game-definition', 'prediction', 'hidden-motive', 'advice', 'pos-start-desc', 'pos-end-desc'];
-            resetIds.forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.innerText = "-";
-            });
-            ['pos-start-self', 'pos-start-others', 'pos-end-self', 'pos-end-others'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) {
-                    el.innerText = "-";
-                    el.className = 'ok-badge badge-none';
-                }
-            });
-            
-            // ページの一番上へスクロール
             window.scrollTo(0, 0);
         }
 
         async function analyzeThought() {
             const thought = document.getElementById('user-thought').value.trim();
             if (!thought) return;
-            
             const btn = document.getElementById('submit-btn');
-            if (btn) btn.disabled = true;
-            
+            btn.disabled = true;
             document.getElementById('input-section').classList.add('hidden');
             document.getElementById('loading').classList.remove('hidden');
             
@@ -148,18 +143,10 @@
                 
                 if (!response.ok) throw new Error(response.status);
                 let data = await response.json();
-                
-                // データが文字列で届いた場合の保険
                 if (typeof data === 'string') data = JSON.parse(data);
-                
-                // もしAPI側でエラーメッセージが返ってきた場合
+
                 if (data.error || data.detail) {
-                    const errorMsg = data.error?.message || data.detail || "制限がかかりました。";
-                    if (errorMsg.includes("429") || errorMsg.includes("quota")) {
-                        alert("短時間に何度も分析したため、制限がかかりました。1分ほど待ってから再度お試しください。");
-                    } else {
-                        alert("分析中にエラーが発生しました。");
-                    }
+                    alert("Quota exceeded or API error. Please wait 1 minute.");
                     resetDisplay();
                     return;
                 }
@@ -169,7 +156,7 @@
                 
                 const getVal = (o, k) => {
                     if (!o) return "-";
-                    for (let x of k) { if (o[x] !== undefined && o[x] !== null && o[x] !== "") return o[x]; }
+                    for (let x of k) { if (o[x]) return o[x]; }
                     return "-";
                 };
 
@@ -181,7 +168,6 @@
                     el.className = 'ok-badge ' + (v.includes('NOT') ? 'badge-not-ok' : v.includes('OK') ? 'badge-ok' : 'badge-none');
                 };
 
-                // 各項目への流し込み
                 document.getElementById('game-name').innerText = getVal(data, ['game_name', 'gameName', '心理ゲーム', 'name']);
                 document.getElementById('game-definition').innerText = getVal(data, ['definition', 'description', '定義', '解説']);
                 document.getElementById('prediction').innerText = getVal(data, ['prediction', 'future', '予測', '破綻']);
@@ -200,11 +186,10 @@
                 document.getElementById('pos-end-desc').innerText = getVal(e, ['description', '解説']);
 
             } catch (err) {
-                console.error("ANALYSIS-ERROR:", err);
-                alert("エラーが発生しました。混雑している可能性があるため、時間を置いてお試しください。");
+                alert("Error: Please try again in 1 minute.");
                 resetDisplay();
             } finally {
-                if (btn) btn.disabled = false;
+                btn.disabled = false;
             }
         }
     </script>
