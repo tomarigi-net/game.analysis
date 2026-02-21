@@ -17,7 +17,7 @@ def home():
         return jsonify({"status": "online", "message": "Gemini 3 Flash Ready!"})
 
     api_key = os.environ.get("GEMINI_API_KEY", "").strip()
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key={api_key}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
 
     try:
         data = request.get_json()
@@ -26,18 +26,23 @@ def home():
         if not thought:
             return jsonify({"error": "Empty input"}), 200
 
+        # プロンプトをアップグレード：主体の自動判別（subject_name）を追加
         prompt = (
-            "交流分析のエキスパートとして、以下の内容を分析し、必ず指定のJSON形式のみで回答してください。\n"
-            "JSON以外の説明テキスト、Markdownの装飾（```jsonなど）は一切含めないでください。\n\n"
+            "あなたはエリック・バーンの交流分析（Transactional Analysis）の世界的権威です。\n"
+            "入力内容から、分析の主体（書き手）を「自分」、対人相手を「他者」として同定してください。\n"
+            "文脈から判断できる場合は、「自分」と「他者」にふさわしい呼称（例：私、上司、妻、Aさん等）を特定してください。\n"
+            "必ず以下のJSON形式のみで回答してください。\n\n"
             "【厳守するJSON構造】\n"
             "{\n"
+            '  "subject_name": "自分に当たる人物の呼称",\n'
+            '  "target_name": "相手に当たる人物の呼称",\n'
             '  "game_name": "名称",\n'
-            '  "definition": "定義",\n'
-            '  "position_start": {"self": "OK or NOT OK", "others": "OK or NOT OK", "description": "解説"},\n'
-            '  "position_end": {"self": "OK or NOT OK", "others": "OK or NOT OK", "description": "解説"},\n'
-            '  "prediction": "予測の内容",\n'
-            '  "hidden_motive": "無意識の利得の内容",\n'
-            '  "advice": "回避策の内容"\n'
+            '  "definition": "定義（100文字程度）",\n'
+            '  "position_start": {"self": "I\'m OK または I\'m NOT OK", "others": "You\'re OK または You\'re NOT OK", "description": "開始時の表面的な心理状態"},\n'
+            '  "position_end": {"self": "I\'m OK または I\'m NOT OK", "others": "You\'re OK または You\'re NOT OK", "description": "結末で味わう真の感情"},\n'
+            '  "prediction": "このまま進んだ場合の最悪の結末",\n'
+            '  "hidden_motive": "無意識に得ようとしている報酬",\n'
+            '  "advice": "ゲームを降りるための具体的なヒント"\n'
             "}\n\n"
             f"【分析対象】: {thought}"
         )
@@ -60,11 +65,7 @@ def home():
         if 'candidates' in result and result['candidates']:
             ai_text = result['candidates'][0]['content']['parts'][0]['text'].strip()
             
-            # --- 強化された抽出ロジック ---
-            # 1. Markdownタグを削除
             clean_text = re.sub(r'```json\s*|```', '', ai_text)
-            
-            # 2. 最初と最後の波括弧 { } の範囲を強制抽出（余計な説明文をカット）
             start_idx = clean_text.find('{')
             end_idx = clean_text.rfind('}')
             if start_idx != -1 and end_idx != -1:
@@ -74,13 +75,12 @@ def home():
                 parsed_json = json.loads(clean_text)
                 return jsonify(parsed_json)
             except json.JSONDecodeError:
-                # パース失敗時も、ブラウザが落ちないようJSON形式でエラー内容を返す
                 return jsonify({
                     "game_name": "解析成功（整形のみ失敗）",
-                    "definition": "AIが特殊な形式で回答したため、一部表示を調整しました。",
+                    "definition": "JSONパースに失敗しました。",
                     "prediction": clean_text[:500],
                     "hidden_motive": "抽出失敗",
-                    "advice": "もう一度送信するか、内容を簡潔にしてお試しください。"
+                    "advice": "内容を少し変えてお試しください。"
                 })
         else:
             return jsonify({"error": "No response from AI"}), 200
@@ -88,6 +88,6 @@ def home():
     except Exception as e:
         return jsonify({"error": "System error", "detail": str(e)}), 200
 
+# 修正：Renderで確実にポートを開くための記述
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000)) 
-    app.run(host="0.0.0.0", port=port)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
