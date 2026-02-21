@@ -1,51 +1,79 @@
-const API_URL = 'https://game-analysis.onrender.com/';
-async function analyzeThought() {
-    const thought = document.getElementById('user-thought').value.trim();
-    if (!thought) return;
-    document.getElementById('input-section').classList.add('hidden');
-    document.getElementById('loading').classList.remove('hidden');
-    try {
-        const response = await fetch(API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ "thought": thought })
-        });
-        if (!response.ok) throw new Error(response.status);
-        const data = await response.json();
-        console.log("Raw:", data);
+<script>
+    const API_URL = 'https://game-analysis.onrender.com/';
+
+    // 画面をリロードせずに最初の状態に戻す関数
+    function resetDisplay() {
+        document.getElementById('user-thought').value = "";
+        document.getElementById('result-section').classList.add('hidden');
         document.getElementById('loading').classList.add('hidden');
-        document.getElementById('result-section').classList.remove('hidden');
-        const val = (keys, obj) => {
-            if (!obj) return "-";
-            for (let k of keys) { if (obj[k] !== undefined && obj[k] !== null) return obj[k]; }
-            return "-";
-        };
-        const updateB = (id, text) => {
-            const el = document.getElementById(id);
-            if (!el) return;
-            const v = String(text || "-").toUpperCase();
-            el.innerText = v;
-            let c = 'badge-none';
-            if (v.includes('NOT')) c = 'badge-not-ok';
-            else if (v.includes('OK')) c = 'badge-ok';
-            el.className = 'ok-badge ' + c;
-        };
-        document.getElementById('game-name').innerText = val(['game_name', 'gameName', '心理ゲーム'], data);
-        document.getElementById('game-definition').innerText = val(['definition', 'description', '定義'], data);
-        document.getElementById('prediction').innerText = val(['prediction', 'future', '予測'], data);
-        document.getElementById('hidden-motive').innerText = val(['hidden_motive', 'payoff', '利得'], data);
-        document.getElementById('advice').innerText = val(['advice', 'solution', '助言'], data);
-        const s = data.position_start || data.start_position || {};
-        const e = data.position_end || data.end_position || {};
-        updateB('pos-start-self', val(['self'], s));
-        updateB('pos-start-others', val(['others'], s));
-        document.getElementById('pos-start-desc').innerText = val(['description'], s);
-        updateB('pos-end-self', val(['self'], e));
-        updateB('pos-end-others', val(['others'], e));
-        document.getElementById('pos-end-desc').innerText = val(['description'], e);
-    } catch (error) {
-        console.error(error);
-        alert("エラーが発生しました");
-        location.reload();
+        document.getElementById('input-section').classList.remove('hidden');
     }
-}
+
+    async function analyzeThought() {
+        const thought = document.getElementById('user-thought').value.trim();
+        if (!thought) return;
+
+        // ボタンの無効化（連打防止）
+        const btn = document.getElementById('submit-btn');
+        if (btn) btn.disabled = true;
+
+        document.getElementById('input-section').classList.add('hidden');
+        document.getElementById('loading').classList.remove('hidden');
+
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ "thought": thought })
+            });
+
+            if (!response.ok) throw new Error(response.status);
+            const data = await response.json();
+            console.log("Raw:", data);
+
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('result-section').classList.remove('hidden');
+
+            const val = (keys, obj) => {
+                if (!obj) return "-";
+                for (let k of keys) { if (obj[k] !== undefined && obj[k] !== null) return obj[k]; }
+                return "-";
+            };
+
+            const updateB = (id, text) => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                const v = String(text || "-").toUpperCase();
+                el.innerText = v;
+                let c = 'badge-none';
+                if (v.includes('NOT')) c = 'badge-not-ok';
+                else if (v.includes('OK')) c = 'badge-ok';
+                el.className = 'ok-badge ' + c;
+            };
+
+            document.getElementById('game-name').innerText = val(['game_name', 'gameName', '心理ゲーム'], data);
+            document.getElementById('game-definition').innerText = val(['definition', 'description', '定義'], data);
+            document.getElementById('prediction').innerText = val(['prediction', 'future', '予測'], data);
+            document.getElementById('hidden-motive').innerText = val(['hidden_motive', 'payoff', '利得'], data);
+            document.getElementById('advice').innerText = val(['advice', 'solution', '助言'], data);
+
+            const s = data.position_start || data.start_position || {};
+            const e = data.position_end || data.end_position || {};
+
+            updateB('pos-start-self', val(['self'], s));
+            updateB('pos-start-others', val(['others'], s));
+            document.getElementById('pos-start-desc').innerText = val(['description'], s);
+
+            updateB('pos-end-self', val(['self'], e));
+            updateB('pos-end-others', val(['others'], e));
+            document.getElementById('pos-end-desc').innerText = val(['description'], e);
+
+        } catch (error) {
+            console.error(error);
+            alert("エラーが発生しました");
+            location.reload();
+        } finally {
+            if (btn) btn.disabled = false;
+        }
+    }
+</script>
