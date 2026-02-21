@@ -122,8 +122,11 @@
                 });
                 
                 if (!response.ok) throw new Error(response.status);
-                const data = await response.json();
-                console.log("V3-SUCCESS:", data);
+                let data = await response.json();
+                
+                // 【強化点】もし中身がさらにJSON文字列だった場合、自動でパースする
+                if (typeof data === 'string') data = JSON.parse(data);
+                console.log("FINAL-DATA:", data);
 
                 document.getElementById('loading').classList.add('hidden');
                 document.getElementById('result-section').classList.remove('hidden');
@@ -160,7 +163,7 @@
                 document.getElementById('pos-end-desc').innerText = getVal(e, ['description', '解説']);
 
             } catch (err) {
-                console.error("V3-ERROR:", err);
+                console.error("ANALYSIS-ERROR:", err);
                 alert("エラーが発生しました。");
                 resetDisplay();
             } finally {
