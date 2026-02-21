@@ -17,6 +17,7 @@ def home():
         return jsonify({"status": "online", "message": "Gemini 3 Flash Ready!"})
 
     api_key = os.environ.get("GEMINI_API_KEY", "").strip()
+    # モデル名をご指定の通り gemini-3-flash-preview に固定
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key={api_key}"
 
     try:
@@ -79,4 +80,9 @@ def home():
     except Exception as e:
         return jsonify({"error": "System error", "detail": str(e)}), 200
 
-# ポート指定の記述を削除し、外部からappを読み取れる状態にします。
+# --- Renderでポートを開くための必須設定 ---
+if __name__ == "__main__":
+    # Renderは環境変数 PORT でポートを指定するため、それを優先的に読み込みます
+    port = int(os.environ.get("PORT", 10000)) 
+    # host="0.0.0.0" により外部からのリクエストを受け付け可能にします
+    app.run(host="0.0.0.0", port=port)
