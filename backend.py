@@ -6,6 +6,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 
 app = Flask(__name__)
+# GitHub Pages からのアクセスのみを許可
 CORS(app, resources={r"/*": {"origins": "https://tomarigi-net.github.io"}})
 
 @app.route('/', methods=['GET', 'POST', 'OPTIONS'], strict_slashes=False)
@@ -21,21 +22,19 @@ def home():
     try:
         data = request.get_json()
         thought = data.get('thought', '').strip() if data else ""
-        mode = data.get('mode', 'strict') if data else 'strict' # モード取得
+        mode = data.get('mode', 'strict') if data else 'strict'
 
         if not thought:
             return jsonify({"error": "Empty input"}), 200
 
-        # --- 最小限の変更: prompt.txt の読み込み ---
+        # prompt.txt の読み込み
+        # ファイルが存在しない場合のエラーを防ぐため try-except を推奨しますが、最小限のためそのままにします
         with open("prompt.txt", "r", encoding="utf-8") as f:
             base_prompt = f.read()
         
-        # モードに応じた追加指示（1行）
         mode_instruction = "\n【追加制約】ゲーム名称は必ずエリック・バーンの原典にある公式名称から選択してください。" if mode == "strict" else "\n【追加制約】原典に縛られず現代的な名称を自由に命名してください。"
         
-        # 最終プロンプトの組み立て
         prompt = f"{base_prompt}\n{mode_instruction}\n\n【分析対象】: {thought}"
-        # -----------------------------------------
 
         payload = {
             "contents": [{"parts": [{"text": prompt}]}],
@@ -65,11 +64,11 @@ def home():
                 return jsonify(parsed_json)
             except json.JSONDecodeError:
                 return jsonify({
-                    "game_name": "解析成功（整形のみ失敗）",
-                    "definition": "JSONパースに失敗しました。",
+                    "game_name": "解析成功（パース失敗）",
+                    "definition": "JSON形式の読み取りに失敗しました。",
                     "prediction": clean_text[:500],
                     "hidden_motive": "抽出失敗",
-                    "advice": "内容を少し変えてお試しください。"
+                    "advice": "もう一度お試しください。"
                 })
         else:
             return jsonify({"error": "No response from AI"}), 200
@@ -77,6 +76,7 @@ def home():
     except Exception as e:
         return jsonify({"error": "System error", "detail": str(e)}), 200
 
-port = int(os.environ.get("PORT", 10000))
+# Render 用のポート設定
 if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
