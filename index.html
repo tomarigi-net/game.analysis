@@ -118,7 +118,7 @@
                 displayResults(data);
             } catch (error) {
                 console.error("Fetch error:", error);
-                alert("通信に失敗しました。");
+                alert("通信に失敗しました。時間をおいて再度お試しください。");
                 location.reload();
             }
         }
@@ -127,17 +127,20 @@
             document.getElementById('loading').classList.add('hidden');
             document.getElementById('result-section').classList.remove('hidden');
 
+            // データのマッピング（AIからのレスポンスを確実に流し込む）
             document.getElementById('game-name').innerText = data.game_name || "心理ゲーム";
             document.getElementById('game-definition').innerText = data.definition || "";
             document.getElementById('prediction').innerText = data.prediction || "";
             document.getElementById('hidden-motive').innerText = data.hidden_motive || "";
             document.getElementById('advice').innerText = data.advice || "";
 
+            // 開始時のポジション
             const start = data.position_start || {};
             renderBadge('pos-start-self', start.self);
             renderBadge('pos-start-others', start.others);
             document.getElementById('pos-start-desc').innerText = start.description || "";
 
+            // 結末時のポジション
             const end = data.position_end || {};
             renderBadge('pos-end-self', end.self);
             renderBadge('pos-end-others', end.others);
