@@ -115,6 +115,7 @@
                 if (!response.ok) throw new Error(`Status: ${response.status}`);
 
                 const data = await response.json();
+                console.log("Analysis Success:", data);
                 displayResults(data);
             } catch (error) {
                 console.error("Fetch error:", error);
@@ -127,24 +128,32 @@
             document.getElementById('loading').classList.add('hidden');
             document.getElementById('result-section').classList.remove('hidden');
 
-            // データのマッピング（AIからのレスポンスを確実に流し込む）
-            document.getElementById('game-name').innerText = data.game_name || "心理ゲーム";
-            document.getElementById('game-definition').innerText = data.definition || "";
-            document.getElementById('prediction').innerText = data.prediction || "";
-            document.getElementById('hidden-motive').innerText = data.hidden_motive || "";
-            document.getElementById('advice').innerText = data.advice || "";
+            // 柔軟なデータ取得関数
+            const getField = (keys, obj = data) => {
+                for (let k of keys) {
+                    if (obj && obj[k] !== undefined && obj[k] !== null) return obj[k];
+                }
+                return "-";
+            };
+
+            // メイン項目の流し込み
+            document.getElementById('game-name').innerText = getField(['game_name', 'gameName', 'name']);
+            document.getElementById('game-definition').innerText = getField(['definition', 'description', 'desc']);
+            document.getElementById('prediction').innerText = getField(['prediction', 'future']);
+            document.getElementById('hidden-motive').innerText = getField(['hidden_motive', 'payoff', 'motive']);
+            document.getElementById('advice').innerText = getField(['advice', 'solution']);
 
             // 開始時のポジション
-            const start = data.position_start || {};
-            renderBadge('pos-start-self', start.self);
-            renderBadge('pos-start-others', start.others);
-            document.getElementById('pos-start-desc').innerText = start.description || "";
+            const start = data.position_start || data.start_position || {};
+            renderBadge('pos-start-self', getField(['self', 'self_pos'], start));
+            renderBadge('pos-start-others', getField(['others', 'others_pos'], start));
+            document.getElementById('pos-start-desc').innerText = getField(['description', 'desc'], start);
 
             // 結末時のポジション
-            const end = data.position_end || {};
-            renderBadge('pos-end-self', end.self);
-            renderBadge('pos-end-others', end.others);
-            document.getElementById('pos-end-desc').innerText = end.description || "";
+            const end = data.position_end || data.end_position || {};
+            renderBadge('pos-end-self', getField(['self', 'self_pos'], end));
+            renderBadge('pos-end-others', getField(['others', 'others_pos'], end));
+            document.getElementById('pos-end-desc').innerText = getField(['description', 'desc'], end);
         }
 
         function renderBadge(id, text) {
