@@ -207,7 +207,17 @@
                     el.className = 'ok-badge ' + (v.includes('NOT') ? 'badge-not-ok' : v.includes('OK') ? 'badge-ok' : 'badge-none');
                 };
 
-                document.getElementById('game-name').innerText = getVal(data, ['game_name', 'gameName', '心理ゲーム']);
+                // --- ここで英語名を併記する処理 ---
+                const jpName = getVal(data, ['game_name', 'gameName', '心理ゲーム']);
+                const enName = getVal(data, ['english_name', 'englishName', '英語名']);
+                
+                if (enName !== "-" && !jpName.includes(enName)) {
+                    document.getElementById('game-name').innerText = `${jpName} (${enName})`;
+                } else {
+                    document.getElementById('game-name').innerText = jpName;
+                }
+                // -------------------------------
+
                 document.getElementById('game-definition').innerText = getVal(data, ['definition', '解説']);
                 document.getElementById('game-scenario').innerText = getVal(data, ['scenario', '要約']);
                 document.getElementById('prediction').innerText = getVal(data, ['prediction', '予測']);
