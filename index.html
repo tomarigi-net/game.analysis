@@ -12,17 +12,20 @@
             --game-accent: #6366f1; 
             --game-dark: #1e293b; 
         }
+        /* 背景のドット模様を確実に表示 */
         body { 
             background-color: var(--game-main); 
-            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 5c5 0 10 5 10 10s-5 10-10 10-10-5-10-10 5-10 10-10zm0 2c-4.4 0-8 3.6-8 8s3.6 8 8 8 8-3.6 8-8-3.6-8-8-8z' fill='%23bbf7d0' fill-opacity='0.3' fill-rule='evenodd'/%3E%3C/svg%3E");
+            background-image: radial-gradient(#bbf7d0 1.5px, transparent 1.5px);
+            background-size: 30px 30px;
             color: var(--game-dark); 
             font-family: sans-serif; 
         }
+        /* 青空ヘッダー：より深く鮮やかな青色に変更 */
         .sky-header {
-            background: linear-gradient(180deg, #7dd3fc 0%, #38bdf8 100%) !important;
+            background: linear-gradient(180deg, #0284c7 0%, #38bdf8 60%, #7dd3fc 100%) !important;
             padding: 2.5rem 1rem;
             text-align: center;
-            border-bottom: 1px solid rgba(255,255,255,0.3);
+            border-bottom: 2px solid rgba(255,255,255,0.3);
         }
         .game-card { background: white; border: 1px solid #e2e8f0; border-radius: 1.5rem; overflow: hidden; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); }
         .ok-badge { padding: 2px 8px; border-radius: 6px; font-weight: bold; font-size: 0.75rem; min-width: 80px; text-align: center; display: inline-block; }
@@ -206,12 +209,18 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ "thought": thought, "mode": document.getElementById('mode-toggle').checked ? "strict" : "flexible" })
                 });
+                
+                if (!response.ok) throw new Error("HTTP error " + response.status);
+                
                 let data = await response.json();
                 if (typeof data === 'string') data = JSON.parse(data);
+                
                 document.getElementById('loading').classList.add('hidden');
                 document.getElementById('result-section').classList.remove('hidden');
+                
                 const getVal = (obj, keys) => { if (!obj) return "-"; for (let key of keys) { if (obj[key]) return obj[key]; } return "-"; };
                 const setB = (id, val) => { const el = document.getElementById(id); if (!el) return; const v = String(val || "-").toUpperCase(); el.innerText = v; el.className = 'ok-badge ' + (v.includes('NOT') ? 'badge-not-ok' : v.includes('OK') ? 'badge-ok' : 'badge-none'); };
+                
                 document.getElementById('game-name').innerText = getVal(data, ['game_name', '心理ゲーム']);
                 document.getElementById('game-definition').innerText = getVal(data, ['definition', '解説']);
                 document.getElementById('game-scenario').innerText = getVal(data, ['scenario', '要約']);
@@ -219,12 +228,17 @@
                 document.getElementById('hidden-motive').innerText = getVal(data, ['hidden_motive', '利得']);
                 document.getElementById('advice').innerText = getVal(data, ['advice', '回避策']);
                 document.getElementById('counseling-msg').innerText = getVal(data, ['counseling', 'カウンセリング']);
+                
                 const s = data.position_start || {}; const e = data.position_end || {};
                 setB('pos-start-self', getVal(s, ['self', '自分'])); setB('pos-start-others', getVal(s, ['others', '相手']));
                 document.getElementById('pos-start-desc').innerText = getVal(s, ['description', '解説']);
                 setB('pos-end-self', getVal(e, ['self', '自分'])); setB('pos-end-others', getVal(e, ['others', '相手']));
                 document.getElementById('pos-end-desc').innerText = getVal(e, ['description', '解説']);
-            } catch (err) { console.error(err); alert("解析中にエラーが発生しました。"); resetDisplay(); }
+            } catch (err) { 
+                console.error(err); 
+                alert("サーバーが起動中か、混雑しています。30秒ほど待ってから再度お試しください。"); 
+                resetDisplay(); 
+            }
         }
     </script>
 </body>
