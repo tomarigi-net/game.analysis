@@ -126,12 +126,12 @@
                 if (!response.ok) throw new Error(response.status);
                 
                 const data = await response.json();
-                console.log("Analysis Success:", data);
-                
+                console.log("Raw Response:", data);
+
                 document.getElementById('loading').classList.add('hidden');
                 document.getElementById('result-section').classList.remove('hidden');
                 
-                const val = (keys, obj) => {
+                const getVal = (obj, keys) => {
                     if (!obj) return "-";
                     for (let k of keys) { 
                         if (obj[k] !== undefined && obj[k] !== null && obj[k] !== "") return obj[k]; 
@@ -139,37 +139,34 @@
                     return "-";
                 };
 
-                const updateB = (id, text) => {
+                const updateBadge = (id, text) => {
                     const el = document.getElementById(id);
                     if (!el) return;
                     const v = String(text || "-").toUpperCase();
                     el.innerText = v;
-                    let c = 'badge-none';
-                    if (v.includes('NOT')) c = 'badge-not-ok';
-                    else if (v.includes('OK')) c = 'badge-ok';
-                    el.className = 'ok-badge ' + c;
+                    el.className = 'ok-badge ' + (v.includes('NOT') ? 'badge-not-ok' : v.includes('OK') ? 'badge-ok' : 'badge-none');
                 };
 
-                document.getElementById('game-name').innerText = val(['game_name', 'gameName', '心理ゲーム'], data);
-                document.getElementById('game-definition').innerText = val(['definition', 'description', '定義', '解説'], data);
-                document.getElementById('prediction').innerText = val(['prediction', 'future', '予測', '破綻'], data);
-                document.getElementById('hidden-motive').innerText = val(['hidden_motive', 'payoff', '利得', '真実'], data);
-                document.getElementById('advice').innerText = val(['advice', 'solution', '助言', '回避策'], data);
+                document.getElementById('game-name').innerText = getVal(data, ['game_name', 'gameName', '心理ゲーム', 'name']);
+                document.getElementById('game-definition').innerText = getVal(data, ['definition', 'description', '定義', '解説']);
+                document.getElementById('prediction').innerText = getVal(data, ['prediction', 'future', '予測', '破綻']);
+                document.getElementById('hidden-motive').innerText = getVal(data, ['hidden_motive', 'payoff', '利得', '真実']);
+                document.getElementById('advice').innerText = getVal(data, ['advice', 'solution', '助言', '回避策']);
 
-                const s = data.position_start || data.start_position || data.開始時 || {};
-                const e = data.position_end || data.end_position || data.結末 || {};
+                const startPos = data.position_start || data.start_position || data.開始時 || {};
+                const endPos = data.position_end || data.end_position || data.結末 || {};
                 
-                updateB('pos-start-self', val(['self', '自分'], s));
-                updateB('pos-start-others', val(['others', '相手'], s));
-                document.getElementById('pos-start-desc').innerText = val(['description', '解説'], s);
+                updateBadge('pos-start-self', getVal(startPos, ['self', '自分']));
+                updateBadge('pos-start-others', getVal(startPos, ['others', '相手']));
+                document.getElementById('pos-start-desc').innerText = getVal(startPos, ['description', '解説']);
                 
-                updateB('pos-end-self', val(['self', '自分'], e));
-                updateB('pos-end-others', val(['others', '相手'], e));
-                document.getElementById('pos-end-desc').innerText = val(['description', '解説'], e);
+                updateBadge('pos-end-self', getVal(endPos, ['self', '自分']));
+                updateBadge('pos-end-others', getVal(endPos, ['others', '相手']));
+                document.getElementById('pos-end-desc').innerText = getVal(endPos, ['description', '解説']);
 
             } catch (error) {
                 console.error("Analysis Error:", error);
-                alert("エラーが発生しました。時間を置いて再度お試しください。");
+                alert("解析エラーが発生しました。時間を置いて再度お試しください。");
                 resetDisplay();
             } finally {
                 if (btn) btn.disabled = false;
