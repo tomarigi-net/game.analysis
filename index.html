@@ -42,14 +42,14 @@
         <div class="max-w-2xl mx-auto px-4 py-10">
             <header class="text-center mb-10">
                 <h1 class="text-3xl font-bold text-indigo-900 leading-tight">心理ゲーム・アナライザー</h1>
-                <p class="text-indigo-600 mt-2 font-medium">「OK <-> not OK」のから、隠されたシナリオを暴く</p>
+                <p class="text-indigo-600 mt-2 font-medium">「OK <-> not OK」の入れ替わりから、隠されたシナリオを暴く</p>
             </header>
 
             <div id="input-section" class="game-card shadow-xl p-8 space-y-6 border-t-4 border-indigo-500">
                 <div class="flex items-center justify-between bg-slate-50 p-4 rounded-2xl border border-slate-100">
                     <div>
                         <span class="block font-bold text-slate-700 text-sm">エリック・バーン限定モード</span>
-                        <span class="text-[10px] text-slate-500 text-xs">「Games People Play」収録の36種から特定</span>
+                        <span class="text-[10px] text-slate-500">「Games People Play」収録の36種から特定</span>
                     </div>
                     <label class="switch">
                         <input type="checkbox" id="mode-toggle" checked>
@@ -58,7 +58,7 @@
                 </div>
 
                 <div>
-                    <label class="block text-lg font-bold mb-3 text-slate-700">今、どんなやり取りがありましたか？</label>
+                    <label class="block text-lg font-bold mb-3 text-slate-700">どんなやり取りがありましたか？</label>
                     <textarea id="user-thought" class="w-full h-32 p-4 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-400 outline-none bg-slate-50 transition" placeholder="例：良かれと思ってアドバイスしたのに..."></textarea>
                 </div>
 
@@ -79,185 +79,3 @@
                 <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-indigo-500 border-t-transparent"></div>
                 <p class="mt-6 text-indigo-800 font-bold">解析中...</p>
             </div>
-
-            <div id="result-section" class="hidden space-y-6 mt-8 fade-in">
-                <div class="game-card p-6 shadow-md border-l-8 border-indigo-600">
-                    <h3 class="text-xs font-bold text-indigo-400 uppercase tracking-widest mb-1">特定された心理ゲーム</h3>
-                    <div id="game-name" class="text-2xl font-black text-indigo-900 mb-2">-</div>
-                    <p id="game-definition" class="text-sm text-slate-500 italic border-t pt-2"></p>
-                    <p id="game-scenario" class="text-sm text-slate-700 mt-2 bg-slate-50 p-3 rounded-lg border border-slate-100">-</p>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="game-card p-5 bg-blue-50/30">
-                        <h4 id="label-start" class="text-blue-700 font-bold text-sm mb-3">▶ 開始時の立ち位置</h4>
-                        <div class="flex justify-between items-center mb-2">
-                            <span id="pos-start-self" class="ok-badge badge-none">-</span>
-                            <span id="pos-start-others" class="ok-badge badge-none">-</span>
-                        </div>
-                        <p id="pos-start-desc" class="text-xs text-slate-600"></p>
-                    </div>
-                    <div class="game-card p-5 bg-rose-50/30">
-                        <h4 id="label-end" class="text-rose-700 font-bold text-sm mb-3">▼ 結末の立ち位置</h4>
-                        <div class="flex justify-between items-center mb-2">
-                            <span id="pos-end-self" class="ok-badge badge-none">-</span>
-                            <span id="pos-end-others" class="ok-badge badge-none">-</span>
-                        </div>
-                        <p id="pos-end-desc" class="text-xs text-slate-600"></p>
-                    </div>
-                </div>
-
-                <div id="prediction-box" class="bg-slate-900 text-white rounded-3xl p-8 shadow-2xl relative overflow-hidden">
-                    <h3 class="text-indigo-400 text-sm font-bold uppercase mb-3">⚠️ このまま進んだ場合の「破綻」</h3>
-                    <p id="prediction" class="text-xl leading-relaxed font-bold">-</p>
-                </div>
-
-                <div class="bg-white border border-slate-200 rounded-2xl p-6">
-                    <h3 class="font-bold text-slate-800 mb-2">🔍 無意識の真実（利得）</h3>
-                    <p id="hidden-motive" class="text-slate-600 text-base">-</p>
-                </div>
-
-                <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-6">
-                    <h3 class="font-bold text-emerald-800 mb-2">💡 回避策</h3>
-                    <p id="advice" class="text-emerald-900 font-bold text-base">-</p>
-                </div>
-
-                <button onclick="resetDisplay()" class="w-full py-6 text-slate-400 hover:text-indigo-600 font-bold">別のパターンを分析する</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        const API_URL = 'https://game-analysis.onrender.com/';
-        const MY_PASSWORD = "izumi"; 
-
-        function checkPassword() {
-            const input = document.getElementById('pass-input').value;
-            const error = document.getElementById('login-error');
-            if (input === MY_PASSWORD) {
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('main-content').classList.remove('hidden');
-                sessionStorage.setItem('isLoggedIn', 'true');
-            } else {
-                error.classList.remove('hidden');
-            }
-        }
-
-        window.onload = () => {
-            if (sessionStorage.getItem('isLoggedIn') === 'true') {
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('main-content').classList.remove('hidden');
-            }
-        };
-
-        function resetDisplay() {
-            document.getElementById('user-thought').value = "";
-            document.getElementById('result-section').classList.add('hidden');
-            document.getElementById('loading').classList.add('hidden');
-            document.getElementById('input-section').classList.remove('hidden');
-            const btn = document.getElementById('submit-btn');
-            if (btn) btn.disabled = false;
-            
-            const resetIds = ['game-name', 'game-definition', 'game-scenario', 'prediction', 'hidden-motive', 'advice', 'pos-start-desc', 'pos-end-desc'];
-            resetIds.forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.innerText = "-";
-            });
-            ['pos-start-self', 'pos-start-others', 'pos-end-self', 'pos-end-others'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) {
-                    el.innerText = "-";
-                    el.className = 'ok-badge badge-none';
-                }
-            });
-            document.getElementById('label-start').innerHTML = "▶ 開始時の立ち位置";
-            document.getElementById('label-end').innerHTML = "▼ 結末の立ち位置";
-            window.scrollTo(0, 0);
-        }
-
-        async function analyzeThought() {
-            const thought = document.getElementById('user-thought').value.trim();
-            if (!thought) return;
-            
-            // モードの取得
-            const isStrict = document.getElementById('mode-toggle').checked;
-            
-            const btn = document.getElementById('submit-btn');
-            if (btn) btn.disabled = true;
-            
-            document.getElementById('input-section').classList.add('hidden');
-            document.getElementById('loading').classList.remove('hidden');
-            
-            try {
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        "thought": thought,
-                        "mode": isStrict ? "strict" : "flexible" // モードフラグを送信
-                    })
-                });
-                
-                if (!response.ok) throw new Error(response.status);
-                let data = await response.json();
-                
-                if (typeof data === 'string') data = JSON.parse(data);
-                
-                if (data.error || data.detail) {
-                    alert("分析中にエラーが発生しました。");
-                    resetDisplay();
-                    return;
-                }
-
-                document.getElementById('loading').classList.add('hidden');
-                document.getElementById('result-section').classList.remove('hidden');
-                
-                const getVal = (o, k) => {
-                    if (!o) return "-";
-                    for (let x of k) { if (o[x] !== undefined && o[x] !== null && o[x] !== "") return o[x]; }
-                    return "-";
-                };
-
-                const setB = (id, val) => {
-                    const el = document.getElementById(id);
-                    if (!el) return;
-                    const v = String(val || "-").toUpperCase();
-                    el.innerText = v;
-                    el.className = 'ok-badge ' + (v.includes('NOT') ? 'badge-not-ok' : v.includes('OK') ? 'badge-ok' : 'badge-none');
-                };
-
-                document.getElementById('game-name').innerText = getVal(data, ['game_name', 'gameName', '心理ゲーム']);
-                document.getElementById('game-definition').innerText = getVal(data, ['definition', '解説']);
-                document.getElementById('game-scenario').innerText = getVal(data, ['scenario', '要約']);
-                document.getElementById('prediction').innerText = getVal(data, ['prediction', '予測']);
-                document.getElementById('hidden-motive').innerText = getVal(data, ['hidden_motive', '利得']);
-                document.getElementById('advice').innerText = getVal(data, ['advice', '回避策']);
-
-                const sName = getVal(data, ['subject_name', 'subjectName', '自分']);
-                if (sName !== "-") {
-                    document.getElementById('label-start').innerHTML = `▶ 開始時 <span class="text-[10px] opacity-70">(${sName}視点)</span>`;
-                    document.getElementById('label-end').innerHTML = `▼ 結末 <span class="text-[10px] opacity-70">(${sName}視点)</span>`;
-                }
-
-                const s = data.position_start || data.start_position || {};
-                const e = data.position_end || data.end_position || {};
-                
-                setB('pos-start-self', getVal(s, ['self', '自分']));
-                setB('pos-start-others', getVal(s, ['others', '相手']));
-                document.getElementById('pos-start-desc').innerText = getVal(s, ['description', '解説']);
-                
-                setB('pos-end-self', getVal(e, ['self', '自分']));
-                setB('pos-end-others', getVal(e, ['others', '相手']));
-                document.getElementById('pos-end-desc').innerText = getVal(e, ['description', '解説']);
-
-            } catch (err) {
-                console.error("ERROR:", err);
-                alert("エラーが発生しました。");
-                resetDisplay();
-            } finally {
-                if (btn) btn.disabled = false;
-            }
-        }
-    </script>
-</body>
-</html>
