@@ -78,17 +78,17 @@
 
             <div id="prediction-box" class="bg-slate-900 text-white rounded-3xl p-8 shadow-2xl relative overflow-hidden">
                 <h3 class="text-indigo-400 text-sm font-bold uppercase mb-3">⚠️ このまま進んだ場合の「破綻」</h3>
-                <p id="prediction" class="text-xl leading-relaxed font-bold"></p>
+                <p id="prediction" class="text-xl leading-relaxed font-bold">分析中...</p>
             </div>
 
             <div class="bg-white border border-slate-200 rounded-2xl p-6">
                 <h3 class="font-bold text-slate-800 mb-2">🔍 無意識の真実（利得）</h3>
-                <p id="hidden-motive" class="text-slate-600 text-base"></p>
+                <p id="hidden-motive" class="text-slate-600 text-base">分析中...</p>
             </div>
 
             <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-6">
                 <h3 class="font-bold text-emerald-800 mb-2">💡 回避策</h3>
-                <p id="advice" class="text-emerald-900 font-bold text-base"></p>
+                <p id="advice" class="text-emerald-900 font-bold text-base">分析中...</p>
             </div>
 
             <button onclick="location.reload()" class="w-full py-6 text-slate-400 hover:text-indigo-600 font-bold">別のパターンを分析する</button>
@@ -96,7 +96,6 @@
     </div>
 
     <script>
-        // ここのハイフン設定が Render の URL と一致している必要があります
         const API_URL = 'https://game-analysis.onrender.com/';
 
         async function analyzeThought() {
@@ -128,17 +127,22 @@
             document.getElementById('loading').classList.add('hidden');
             document.getElementById('result-section').classList.remove('hidden');
 
+            // 柔軟なデータ取得関数：AIが予測外のキー名で返しても見つけ出す
             const get = (keys) => {
-                for (let k of keys) { if (data[k] && data[k] !== "-") return data[k]; }
-                return "分析完了";
+                for (let k of keys) { 
+                    if (data[k] && data[k] !== "-" && data[k] !== "分析中...") return data[k]; 
+                }
+                return "分析完了（データなし）";
             };
 
+            // 各要素への流し込み（複数の可能性を網羅）
             document.getElementById('game-name').innerText = get(['game_name', 'gameName', 'title']);
-            document.getElementById('game-definition').innerText = get(['definition', 'description']);
-            document.getElementById('prediction').innerText = get(['prediction', 'future']);
-            document.getElementById('hidden-motive').innerText = get(['hidden_motive', 'payoff', 'motive']);
-            document.getElementById('advice').innerText = get(['advice', 'solution']);
+            document.getElementById('game-definition').innerText = get(['definition', 'description', 'content']);
+            document.getElementById('prediction').innerText = get(['prediction', 'future', 'future_prediction', '結末']);
+            document.getElementById('hidden-motive').innerText = get(['hidden_motive', 'payoff', 'motive', '利得']);
+            document.getElementById('advice').innerText = get(['advice', 'solution', '回避策']);
 
+            // ポジション情報の解析
             const start = data.position_start || data.start_position || {};
             renderBadge('pos-start-self', start.self || data.start_self || "-");
             renderBadge('pos-start-others', start.others || data.start_others || "-");
