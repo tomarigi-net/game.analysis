@@ -109,10 +109,8 @@
         async function analyzeThought() {
             const thought = document.getElementById('user-thought').value.trim();
             if (!thought) return;
-            
             const btn = document.getElementById('submit-btn');
             if (btn) btn.disabled = true;
-            
             document.getElementById('input-section').classList.add('hidden');
             document.getElementById('loading').classList.remove('hidden');
             
@@ -124,25 +122,22 @@
                 });
                 
                 if (!response.ok) throw new Error(response.status);
-                
                 const data = await response.json();
-                console.log("Raw Response:", data);
+                console.log("V3-SUCCESS:", data);
 
                 document.getElementById('loading').classList.add('hidden');
                 document.getElementById('result-section').classList.remove('hidden');
                 
-                const getVal = (obj, keys) => {
-                    if (!obj) return "-";
-                    for (let k of keys) { 
-                        if (obj[k] !== undefined && obj[k] !== null && obj[k] !== "") return obj[k]; 
-                    }
+                const getVal = (o, k) => {
+                    if (!o) return "-";
+                    for (let x of k) { if (o[x]) return o[x]; }
                     return "-";
                 };
 
-                const updateBadge = (id, text) => {
+                const setB = (id, val) => {
                     const el = document.getElementById(id);
                     if (!el) return;
-                    const v = String(text || "-").toUpperCase();
+                    const v = String(val || "-").toUpperCase();
                     el.innerText = v;
                     el.className = 'ok-badge ' + (v.includes('NOT') ? 'badge-not-ok' : v.includes('OK') ? 'badge-ok' : 'badge-none');
                 };
@@ -153,20 +148,20 @@
                 document.getElementById('hidden-motive').innerText = getVal(data, ['hidden_motive', 'payoff', '利得', '真実']);
                 document.getElementById('advice').innerText = getVal(data, ['advice', 'solution', '助言', '回避策']);
 
-                const startPos = data.position_start || data.start_position || data.開始時 || {};
-                const endPos = data.position_end || data.end_position || data.結末 || {};
+                const s = data.position_start || data.start_position || data.開始時 || {};
+                const e = data.position_end || data.end_position || data.結末 || {};
                 
-                updateBadge('pos-start-self', getVal(startPos, ['self', '自分']));
-                updateBadge('pos-start-others', getVal(startPos, ['others', '相手']));
-                document.getElementById('pos-start-desc').innerText = getVal(startPos, ['description', '解説']);
+                setB('pos-start-self', getVal(s, ['self', '自分']));
+                setB('pos-start-others', getVal(s, ['others', '相手']));
+                document.getElementById('pos-start-desc').innerText = getVal(s, ['description', '解説']);
                 
-                updateBadge('pos-end-self', getVal(endPos, ['self', '自分']));
-                updateBadge('pos-end-others', getVal(endPos, ['others', '相手']));
-                document.getElementById('pos-end-desc').innerText = getVal(endPos, ['description', '解説']);
+                setB('pos-end-self', getVal(e, ['self', '自分']));
+                setB('pos-end-others', getVal(e, ['others', '相手']));
+                document.getElementById('pos-end-desc').innerText = getVal(e, ['description', '解説']);
 
-            } catch (error) {
-                console.error("Analysis Error:", error);
-                alert("解析エラーが発生しました。時間を置いて再度お試しください。");
+            } catch (err) {
+                console.error("V3-ERROR:", err);
+                alert("エラーが発生しました。");
                 resetDisplay();
             } finally {
                 if (btn) btn.disabled = false;
