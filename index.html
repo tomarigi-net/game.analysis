@@ -109,3 +109,48 @@
                 const response = await fetch(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ "thought": thought })
+                });
+
+                if (!response.ok) throw new Error(`Status: ${response.status}`);
+
+                const data = await response.json();
+                displayResults(data);
+            } catch (error) {
+                console.error("Fetch error:", error);
+                alert("通信に失敗しました。");
+                location.reload();
+            }
+        }
+
+        function displayResults(data) {
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('result-section').classList.remove('hidden');
+
+            document.getElementById('game-name').innerText = data.game_name || "心理ゲーム";
+            document.getElementById('game-definition').innerText = data.definition || "";
+            document.getElementById('prediction').innerText = data.prediction || "";
+            document.getElementById('hidden-motive').innerText = data.hidden_motive || "";
+            document.getElementById('advice').innerText = data.advice || "";
+
+            const start = data.position_start || {};
+            renderBadge('pos-start-self', start.self);
+            renderBadge('pos-start-others', start.others);
+            document.getElementById('pos-start-desc').innerText = start.description || "";
+
+            const end = data.position_end || {};
+            renderBadge('pos-end-self', end.self);
+            renderBadge('pos-end-others', end.others);
+            document.getElementById('pos-end-desc').innerText = end.description || "";
+        }
+
+        function renderBadge(id, text) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            const val = String(text || "-").toUpperCase();
+            el.innerText = val;
+            el.className = 'ok-badge ' + (val.includes('NOT') ? 'badge-not-ok' : (val.includes('OK') ? 'badge-ok' : 'badge-none'));
+        }
+    </script>
+</body>
+</html>
