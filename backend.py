@@ -6,7 +6,6 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 
 app = Flask(__name__)
-# GitHub Pages からのアクセスのみを許可
 CORS(app, resources={r"/*": {"origins": "https://tomarigi-net.github.io"}})
 
 @app.route('/', methods=['GET', 'POST', 'OPTIONS'], strict_slashes=False)
@@ -28,7 +27,6 @@ def home():
             return jsonify({"error": "Empty input"}), 200
 
         # prompt.txt の読み込み
-        # ファイルが存在しない場合のエラーを防ぐため try-except を推奨しますが、最小限のためそのままにします
         with open("prompt.txt", "r", encoding="utf-8") as f:
             base_prompt = f.read()
         
@@ -63,20 +61,14 @@ def home():
                 parsed_json = json.loads(clean_text)
                 return jsonify(parsed_json)
             except json.JSONDecodeError:
-                return jsonify({
-                    "game_name": "解析成功（パース失敗）",
-                    "definition": "JSON形式の読み取りに失敗しました。",
-                    "prediction": clean_text[:500],
-                    "hidden_motive": "抽出失敗",
-                    "advice": "もう一度お試しください。"
-                })
+                return jsonify({"error": "Parse Error", "raw": clean_text})
         else:
             return jsonify({"error": "No response from AI"}), 200
 
     except Exception as e:
         return jsonify({"error": "System error", "detail": str(e)}), 200
 
-# Render 用のポート設定
+# --- ここが重要：Renderのポート開放設定 ---
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
