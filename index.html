@@ -106,7 +106,7 @@
                 </div>
 
                 <div id="prediction-box" class="bg-slate-900 text-white rounded-3xl p-8 shadow-2xl relative overflow-hidden">
-                    <h3 class="text-indigo-400 text-sm font-bold uppercase mb-3">⚠️ このまま進んだ場合の「破綻」</h3>
+                    <h3 class="text-indigo-400 text-sm font-bold uppercase mb-3">⚠️ このまま進んだゲームの結末「破綻」</h3>
                     <p id="prediction" class="text-xl leading-relaxed font-bold">-</p>
                 </div>
 
@@ -118,6 +118,15 @@
                 <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-6">
                     <h3 class="font-bold text-emerald-800 mb-2">💡 回避策</h3>
                     <p id="advice" class="text-emerald-900 font-bold text-base">-</p>
+                </div>
+
+                <div class="bg-indigo-50 border border-indigo-100 rounded-2xl p-6 mt-6">
+                    <h3 class="font-bold text-indigo-800 mb-2 flex items-center">
+                        <span class="mr-2 text-lg">🌱</span>心の処方箋
+                    </h3>
+                    <p id="counseling-msg" class="text-slate-700 text-sm leading-relaxed italic">
+                        -
+                    </p>
                 </div>
 
                 <div class="mt-8 border-t border-slate-200 pt-6">
@@ -233,6 +242,9 @@
                 document.getElementById('prediction').innerText = getVal(data, ['prediction', '予測']);
                 document.getElementById('hidden-motive').innerText = getVal(data, ['hidden_motive', '利得']);
                 document.getElementById('advice').innerText = getVal(data, ['advice', '回避策']);
+                
+                // カウンセリングメッセージの読み込みを追加
+                document.getElementById('counseling-msg').innerText = getVal(data, ['counseling', 'カウンセリング', 'message']);
 
                 const sName = getVal(data, ['subject_name', 'subjectName', '自分']);
                 if (sName !== "-") {
