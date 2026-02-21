@@ -218,9 +218,22 @@
                 document.getElementById('loading').classList.add('hidden');
                 document.getElementById('result-section').classList.remove('hidden');
                 
-                const getVal = (obj, keys) => { if (!obj) return "-"; for (let key of keys) { if (obj[key]) return obj[key]; } return "-"; };
-                const setB = (id, val) => { const el = document.getElementById(id); if (!el) return; const v = String(val || "-").toUpperCase(); el.innerText = v; el.className = 'ok-badge ' + (v.includes('NOT') ? 'badge-not-ok' : v.includes('OK') ? 'badge-ok' : 'badge-none'); };
+                // --- 修正箇所：データ取得用ヘルパー（日本語・英語両対応） ---
+                const getVal = (obj, keys) => { 
+                    if (!obj) return "-"; 
+                    for (let key of keys) { if (obj[key]) return obj[key]; } 
+                    return "-"; 
+                };
                 
+                const setBadge = (id, val) => { 
+                    const el = document.getElementById(id); 
+                    if (!el) return; 
+                    const v = String(val || "-").toUpperCase(); 
+                    el.innerText = v; 
+                    el.className = 'ok-badge ' + (v.includes('NOT') ? 'badge-not-ok' : v.includes('OK') ? 'badge-ok' : 'badge-none'); 
+                };
+                
+                // 各項目の流し込み
                 document.getElementById('game-name').innerText = getVal(data, ['game_name', '心理ゲーム']);
                 document.getElementById('game-definition').innerText = getVal(data, ['definition', '解説']);
                 document.getElementById('game-scenario').innerText = getVal(data, ['scenario', '要約']);
@@ -229,14 +242,21 @@
                 document.getElementById('advice').innerText = getVal(data, ['advice', '回避策']);
                 document.getElementById('counseling-msg').innerText = getVal(data, ['counseling', 'カウンセリング']);
                 
-                const s = data.position_start || {}; const e = data.position_end || {};
-                setB('pos-start-self', getVal(s, ['self', '自分'])); setB('pos-start-others', getVal(s, ['others', '相手']));
+                // 心理ポジションの流し込み（position_startなどのネストに対応）
+                const s = data.position_start || data['開始時のポジション'] || {}; 
+                const e = data.position_end || data['結末のポジション'] || {};
+                
+                setBadge('pos-start-self', getVal(s, ['self', '自分'])); 
+                setBadge('pos-start-others', getVal(s, ['others', '相手']));
                 document.getElementById('pos-start-desc').innerText = getVal(s, ['description', '解説']);
-                setB('pos-end-self', getVal(e, ['self', '自分'])); setB('pos-end-others', getVal(e, ['others', '相手']));
+                
+                setBadge('pos-end-self', getVal(e, ['self', '自分'])); 
+                setBadge('pos-end-others', getVal(e, ['others', '相手']));
                 document.getElementById('pos-end-desc').innerText = getVal(e, ['description', '解説']);
+
             } catch (err) { 
                 console.error(err); 
-                alert("サーバーが起動中か、混雑しています。30秒ほど待ってから再度お試しください。"); 
+                alert("サーバーが応答していません。少し待ってから再度お試しください。"); 
                 resetDisplay(); 
             }
         }
