@@ -120,11 +120,11 @@
                     <p id="advice" class="text-emerald-900 font-bold text-base">-</p>
                 </div>
 
-                <div class="bg-indigo-50 border border-indigo-100 rounded-2xl p-6 mt-6">
+                <div class="bg-indigo-50 border border-indigo-100 rounded-2xl p-6 mt-6 shadow-sm">
                     <h3 class="font-bold text-indigo-800 mb-2 flex items-center">
                         <span class="mr-2 text-lg">🌱</span>心の処方箋
                     </h3>
-                    <p id="counseling-msg" class="text-slate-700 text-sm leading-relaxed italic">
+                    <p id="counseling-msg" class="text-slate-700 text-sm leading-relaxed italic whitespace-pre-wrap">
                         -
                     </p>
                 </div>
@@ -214,9 +214,19 @@
                 document.getElementById('loading').classList.add('hidden');
                 document.getElementById('result-section').classList.remove('hidden');
                 
-                const getVal = (o, k) => {
-                    if (!o) return "-";
-                    for (let x of k) { if (o[x] !== undefined && o[x] !== null && o[x] !== "") return o[x]; }
+                // データ取得用ヘルパー：オブジェクトが返ってきても文字列を抽出する
+                const getVal = (obj, keys) => {
+                    if (!obj) return "-";
+                    for (let key of keys) {
+                        let target = obj[key];
+                        if (target !== undefined && target !== null && target !== "") {
+                            // もし中身がさらにオブジェクトなら、その中の 'message' 等を探す
+                            if (typeof target === 'object' && !Array.isArray(target)) {
+                                return target.message || target.text || target.content || JSON.stringify(target);
+                            }
+                            return target;
+                        }
+                    }
                     return "-";
                 };
 
@@ -228,14 +238,10 @@
                     el.className = 'ok-badge ' + (v.includes('NOT') ? 'badge-not-ok' : v.includes('OK') ? 'badge-ok' : 'badge-none');
                 };
 
-                const jpName = getVal(data, ['game_name', 'gameName', '心理ゲーム']);
-                const enName = getVal(data, ['english_name', 'englishName', '英語名']);
-                
-                if (enName !== "-" && !jpName.includes(enName)) {
-                    document.getElementById('game-name').innerText = `${jpName} (${enName})`;
-                } else {
-                    document.getElementById('game-name').innerText = jpName;
-                }
+                // 表示処理
+                const jpName = getVal(data, ['game_name', '心理ゲーム']);
+                const enName = getVal(data, ['english_name', '英語名']);
+                document.getElementById('game-name').innerText = (enName !== "-" && !jpName.includes(enName)) ? `${jpName} (${enName})` : jpName;
 
                 document.getElementById('game-definition').innerText = getVal(data, ['definition', '解説']);
                 document.getElementById('game-scenario').innerText = getVal(data, ['scenario', '要約']);
@@ -243,10 +249,10 @@
                 document.getElementById('hidden-motive').innerText = getVal(data, ['hidden_motive', '利得']);
                 document.getElementById('advice').innerText = getVal(data, ['advice', '回避策']);
                 
-                // カウンセリングメッセージの読み込みを追加
-                document.getElementById('counseling-msg').innerText = getVal(data, ['counseling', 'カウンセリング', 'message']);
+                // 🌱 [object Object] を防ぐため、階層を深く探る
+                document.getElementById('counseling-msg').innerText = getVal(data, ['counseling', 'カウンセリング']);
 
-                const sName = getVal(data, ['subject_name', 'subjectName', '自分']);
+                const sName = getVal(data, ['subject_name', '自分']);
                 if (sName !== "-") {
                     document.getElementById('label-start').innerHTML = `▶ 開始時 (${sName}視点)`;
                     document.getElementById('label-end').innerHTML = `▼ 結末 (${sName}視点)`;
@@ -264,6 +270,7 @@
                 document.getElementById('pos-end-desc').innerText = getVal(e, ['description', '解説']);
 
             } catch (err) {
+                console.error(err);
                 alert("エラーが発生しました。");
                 resetDisplay();
             }
