@@ -102,32 +102,39 @@
             document.getElementById('result-section').classList.add('hidden');
             document.getElementById('loading').classList.add('hidden');
             document.getElementById('input-section').classList.remove('hidden');
+            const btn = document.getElementById('submit-btn');
+            if (btn) btn.disabled = false;
         }
 
         async function analyzeThought() {
             const thought = document.getElementById('user-thought').value.trim();
             if (!thought) return;
+            
             const btn = document.getElementById('submit-btn');
             if (btn) btn.disabled = true;
+            
             document.getElementById('input-section').classList.add('hidden');
             document.getElementById('loading').classList.remove('hidden');
+            
             try {
                 const response = await fetch(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ "thought": thought })
                 });
+                
                 if (!response.ok) throw new Error(response.status);
+                
                 const data = await response.json();
-                console.log("Raw Data:", data);
                 
                 document.getElementById('loading').classList.add('hidden');
                 document.getElementById('result-section').classList.remove('hidden');
                 
-                // 表記揺れ対応の抽出関数
                 const val = (keys, obj) => {
                     if (!obj) return "-";
-                    for (let k of keys) { if (obj[k] !== undefined && obj[k] !== null) return obj[k]; }
+                    for (let k of keys) { 
+                        if (obj[k] !== undefined && obj[k] !== null && obj[k] !== "") return obj[k]; 
+                    }
                     return "-";
                 };
 
@@ -142,7 +149,6 @@
                     el.className = 'ok-badge ' + c;
                 };
 
-                // 各項目の流し込み（日本語キーにも対応）
                 document.getElementById('game-name').innerText = val(['game_name', 'gameName', '心理ゲーム'], data);
                 document.getElementById('game-definition').innerText = val(['definition', 'description', '定義', '解説'], data);
                 document.getElementById('prediction').innerText = val(['prediction', 'future', '予測', '破綻'], data);
@@ -161,8 +167,7 @@
                 document.getElementById('pos-end-desc').innerText = val(['description', '解説'], e);
 
             } catch (error) {
-                console.error(error);
-                alert("エラーが発生しました。混雑している場合は時間を置いてお試しください。");
+                alert("エラーが発生しました。時間を置いて再度お試しください。");
                 resetDisplay();
             } finally {
                 if (btn) btn.disabled = false;
