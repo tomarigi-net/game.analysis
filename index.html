@@ -94,7 +94,8 @@
             <button onclick="location.reload()" class="w-full py-6 text-slate-400 hover:text-indigo-600 font-bold">別のパターンを分析する</button>
         </div>
     </div>
-<script>
+
+    <script>
         const API_URL = 'https://game-analysis.onrender.com/';
 
         async function analyzeThought() {
@@ -116,52 +117,3 @@
                 const data = await response.json();
                 displayResults(data);
             } catch (error) {
-                console.error("Fetch error:", error);
-                alert("通信に失敗しました。時間をおいて再試行してください。");
-                location.reload();
-            }
-        }
-
-        function displayResults(data) {
-            document.getElementById('loading').classList.add('hidden');
-            document.getElementById('result-section').classList.remove('hidden');
-
-            // 【強化点】AIが返しそうな名前を網羅し、さらに中身をディープに探す
-            const get = (keys) => {
-                for (let k of keys) { 
-                    if (data[k] && data[k] !== "-" && data[k] !== "分析中...") return data[k]; 
-                }
-                // もし指定したキーが全滅なら、一番長い文章を返しているキーを自動抽出
-                const vals = Object.values(data).filter(v => typeof v === 'string');
-                return vals.sort((a, b) => b.length - a.length)[0] || "分析完了";
-            };
-
-            // 各要素への流し込み（AIが使いそうな「日本語名」も追加して万全に）
-            document.getElementById('game-name').innerText = get(['game_name', 'gameName', '名称', '心理ゲーム', 'title']);
-            document.getElementById('game-definition').innerText = get(['definition', 'description', '定義', '解説']);
-            document.getElementById('prediction').innerText = get(['prediction', 'future', '結末', '予測', '破綻']);
-            document.getElementById('hidden-motive').innerText = get(['hidden_motive', 'payoff', 'motive', '利得', '真実']);
-            document.getElementById('advice').innerText = get(['advice', 'solution', '回避策', '助言']);
-
-            // ポジション情報の解析
-            const start = data.position_start || data.start_position || data.開始時の立ち位置 || {};
-            renderBadge('pos-start-self', start.self || data.start_self || start.自分 || "-");
-            renderBadge('pos-start-others', start.others || data.start_others || start.他人 || "-");
-            document.getElementById('pos-start-desc').innerText = start.description || start.解説 || "";
-
-            const end = data.position_end || data.end_position || data.結末の立ち位置 || {};
-            renderBadge('pos-end-self', end.self || data.end_self || end.自分 || "-");
-            renderBadge('pos-end-others', end.others || data.end_others || end.他人 || "-");
-            document.getElementById('pos-end-desc').innerText = end.description || end.解説 || "";
-        }
-
-        function renderBadge(id, text) {
-            const el = document.getElementById(id);
-            if (!el) return;
-            const val = String(text || "-").toUpperCase();
-            el.innerText = val;
-            el.className = 'ok-badge ' + (val.includes('NOT') ? 'badge-not-ok' : (val.includes('OK') ? 'badge-ok' : 'badge-none'));
-        }
-    </script>
-</body>
-</html>
