@@ -16,20 +16,17 @@ def home():
     if request.method == 'GET':
         return jsonify({"status": "online", "message": "Gemini 3 Flash Ready!"})
 
-    # 環境変数からAPIキーを取得
     api_key = os.environ.get("GEMINI_API_KEY", "").strip()
-    # モデル名をご指定の gemini-3-flash-preview に固定
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key={api_key}"
 
     try:
-        # フロントエンドからのJSONを取得
         data = request.get_json()
         thought = data.get('thought', '').strip() if data else ""
 
         if not thought:
             return jsonify({"error": "Empty input"}), 200
 
-        # AIへの指示（プロンプト）：HTML側のJSが探しているキー名と完全に一致させる
+        # HTML側のJSが探しているキー名と完全に一致させるプロンプト
         prompt = (
             "交流分析のエキスパートとして、以下の内容を分析し、必ず指定のJSON形式のみで回答してください。\n"
             "JSON以外の説明テキスト、Markdownの装飾（```jsonなど）は一切含めないでください。\n\n"
@@ -54,7 +51,6 @@ def home():
             }
         }
 
-        # Google APIへリクエスト送信
         response = requests.post(url, json=payload, timeout=60)
         
         if response.status_code != 200:
@@ -62,24 +58,14 @@ def home():
 
         result = response.json()
         
-        # AIの回答テキストを取り出し
         if 'candidates' in result and result['candidates']:
             ai_text = result['candidates'][0]['content']['parts'][0]['text'].strip()
-            
-            # JSON部分のクリーニング（余計な装飾を消す）
             clean_text = re.sub(r'^```json\s*|```$', '', ai_text, flags=re.MULTILINE).strip()
             
             try:
                 parsed_json = json.loads(clean_text)
-                # HTML側が期待する全てのキーが存在するかチェックし、なければ補完する
-                expected_keys = ["game_name", "definition", "prediction", "hidden_motive", "advice"]
-                for key in expected_keys:
-                    if key not in parsed_json:
-                        parsed_json[key] = "分析完了（詳細データなし）"
-                
                 return jsonify(parsed_json)
             except json.JSONDecodeError:
-                # パース失敗時の救済措置
                 return jsonify({
                     "game_name": "分析完了",
                     "definition": "解析結果の整形に失敗しましたが、内容は以下の通りです。",
@@ -93,6 +79,4 @@ def home():
     except Exception as e:
         return jsonify({"error": "System error", "detail": str(e)}), 200
 
-if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
+# ポート指定の記述を削除し、外部からappを読み取れる状態にします。
