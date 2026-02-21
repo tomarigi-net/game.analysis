@@ -17,6 +17,14 @@
         .fade-in { animation: fadeIn 0.5s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .hidden { display: none !important; }
+        
+        /* スイッチ用スタイル */
+        .switch { position: relative; display: inline-block; width: 50px; height: 26px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #6366f1; }
+        input:checked + .slider:before { transform: translateX(24px); }
     </style>
 </head>
 <body class="min-h-screen pb-12">
@@ -38,6 +46,17 @@
             </header>
 
             <div id="input-section" class="game-card shadow-xl p-8 space-y-6 border-t-4 border-indigo-500">
+                <div class="flex items-center justify-between bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                    <div>
+                        <span class="block font-bold text-slate-700 text-sm">エリック・バーン限定モード</span>
+                        <span class="text-[10px] text-slate-500 text-xs">「Games People Play」収録の36種から特定</span>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="mode-toggle" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
                 <div>
                     <label class="block text-lg font-bold mb-3 text-slate-700">今、どんなやり取りがありましたか？</label>
                     <textarea id="user-thought" class="w-full h-32 p-4 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-400 outline-none bg-slate-50 transition" placeholder="例：良かれと思ってアドバイスしたのに..."></textarea>
@@ -66,11 +85,12 @@
                     <h3 class="text-xs font-bold text-indigo-400 uppercase tracking-widest mb-1">特定された心理ゲーム</h3>
                     <div id="game-name" class="text-2xl font-black text-indigo-900 mb-2">-</div>
                     <p id="game-definition" class="text-sm text-slate-500 italic border-t pt-2"></p>
+                    <p id="game-scenario" class="text-sm text-slate-700 mt-2 bg-slate-50 p-3 rounded-lg border border-slate-100">-</p>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="game-card p-5 bg-blue-50/30">
-                        <h4 class="text-blue-700 font-bold text-sm mb-3">▶ 開始時の立ち位置</h4>
+                        <h4 id="label-start" class="text-blue-700 font-bold text-sm mb-3">▶ 開始時の立ち位置</h4>
                         <div class="flex justify-between items-center mb-2">
                             <span id="pos-start-self" class="ok-badge badge-none">-</span>
                             <span id="pos-start-others" class="ok-badge badge-none">-</span>
@@ -78,7 +98,7 @@
                         <p id="pos-start-desc" class="text-xs text-slate-600"></p>
                     </div>
                     <div class="game-card p-5 bg-rose-50/30">
-                        <h4 class="text-rose-700 font-bold text-sm mb-3">▼ 結末の立ち位置</h4>
+                        <h4 id="label-end" class="text-rose-700 font-bold text-sm mb-3">▼ 結末の立ち位置</h4>
                         <div class="flex justify-between items-center mb-2">
                             <span id="pos-end-self" class="ok-badge badge-none">-</span>
                             <span id="pos-end-others" class="ok-badge badge-none">-</span>
@@ -109,10 +129,8 @@
 
     <script>
         const API_URL = 'https://game-analysis.onrender.com/';
-        // 🔑 好きなパスワードに変更してください
         const MY_PASSWORD = "izumi"; 
 
-        // パスワードチェック
         function checkPassword() {
             const input = document.getElementById('pass-input').value;
             const error = document.getElementById('login-error');
@@ -125,7 +143,6 @@
             }
         }
 
-        // ログイン状態の保持確認
         window.onload = () => {
             if (sessionStorage.getItem('isLoggedIn') === 'true') {
                 document.getElementById('login-screen').classList.add('hidden');
@@ -133,7 +150,6 @@
             }
         };
 
-        // リセット処理
         function resetDisplay() {
             document.getElementById('user-thought').value = "";
             document.getElementById('result-section').classList.add('hidden');
@@ -142,7 +158,7 @@
             const btn = document.getElementById('submit-btn');
             if (btn) btn.disabled = false;
             
-            const resetIds = ['game-name', 'game-definition', 'prediction', 'hidden-motive', 'advice', 'pos-start-desc', 'pos-end-desc'];
+            const resetIds = ['game-name', 'game-definition', 'game-scenario', 'prediction', 'hidden-motive', 'advice', 'pos-start-desc', 'pos-end-desc'];
             resetIds.forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.innerText = "-";
@@ -154,12 +170,17 @@
                     el.className = 'ok-badge badge-none';
                 }
             });
+            document.getElementById('label-start').innerHTML = "▶ 開始時の立ち位置";
+            document.getElementById('label-end').innerHTML = "▼ 結末の立ち位置";
             window.scrollTo(0, 0);
         }
 
         async function analyzeThought() {
             const thought = document.getElementById('user-thought').value.trim();
             if (!thought) return;
+            
+            // モードの取得
+            const isStrict = document.getElementById('mode-toggle').checked;
             
             const btn = document.getElementById('submit-btn');
             if (btn) btn.disabled = true;
@@ -171,7 +192,10 @@
                 const response = await fetch(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ "thought": thought })
+                    body: JSON.stringify({ 
+                        "thought": thought,
+                        "mode": isStrict ? "strict" : "flexible" // モードフラグを送信
+                    })
                 });
                 
                 if (!response.ok) throw new Error(response.status);
@@ -180,12 +204,7 @@
                 if (typeof data === 'string') data = JSON.parse(data);
                 
                 if (data.error || data.detail) {
-                    const errorMsg = data.error?.message || data.detail || "制限がかかりました。";
-                    if (errorMsg.includes("429") || errorMsg.includes("quota")) {
-                        alert("短時間に何度も分析したため、制限がかかりました。1分ほど待ってから再度お試しください。");
-                    } else {
-                        alert("分析中にエラーが発生しました。");
-                    }
+                    alert("分析中にエラーが発生しました。");
                     resetDisplay();
                     return;
                 }
@@ -207,14 +226,21 @@
                     el.className = 'ok-badge ' + (v.includes('NOT') ? 'badge-not-ok' : v.includes('OK') ? 'badge-ok' : 'badge-none');
                 };
 
-                document.getElementById('game-name').innerText = getVal(data, ['game_name', 'gameName', '心理ゲーム', 'name']);
-                document.getElementById('game-definition').innerText = getVal(data, ['definition', 'description', '定義', '解説']);
-                document.getElementById('prediction').innerText = getVal(data, ['prediction', 'future', '予測', '破綻']);
-                document.getElementById('hidden-motive').innerText = getVal(data, ['hidden_motive', 'payoff', '利得', '真実']);
-                document.getElementById('advice').innerText = getVal(data, ['advice', 'solution', '助言', '回避策']);
+                document.getElementById('game-name').innerText = getVal(data, ['game_name', 'gameName', '心理ゲーム']);
+                document.getElementById('game-definition').innerText = getVal(data, ['definition', '解説']);
+                document.getElementById('game-scenario').innerText = getVal(data, ['scenario', '要約']);
+                document.getElementById('prediction').innerText = getVal(data, ['prediction', '予測']);
+                document.getElementById('hidden-motive').innerText = getVal(data, ['hidden_motive', '利得']);
+                document.getElementById('advice').innerText = getVal(data, ['advice', '回避策']);
 
-                const s = data.position_start || data.start_position || data.開始時 || {};
-                const e = data.position_end || data.end_position || data.結末 || {};
+                const sName = getVal(data, ['subject_name', 'subjectName', '自分']);
+                if (sName !== "-") {
+                    document.getElementById('label-start').innerHTML = `▶ 開始時 <span class="text-[10px] opacity-70">(${sName}視点)</span>`;
+                    document.getElementById('label-end').innerHTML = `▼ 結末 <span class="text-[10px] opacity-70">(${sName}視点)</span>`;
+                }
+
+                const s = data.position_start || data.start_position || {};
+                const e = data.position_end || data.end_position || {};
                 
                 setB('pos-start-self', getVal(s, ['self', '自分']));
                 setB('pos-start-others', getVal(s, ['others', '相手']));
@@ -225,8 +251,8 @@
                 document.getElementById('pos-end-desc').innerText = getVal(e, ['description', '解説']);
 
             } catch (err) {
-                console.error("ANALYSIS-ERROR:", err);
-                alert("エラーが発生しました。時間を置いてお試しください。");
+                console.error("ERROR:", err);
+                alert("エラーが発生しました。");
                 resetDisplay();
             } finally {
                 if (btn) btn.disabled = false;
