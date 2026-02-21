@@ -30,7 +30,7 @@
                 <label class="block text-lg font-bold mb-3 text-slate-700">今、どんなやり取りがありましたか？</label>
                 <textarea id="user-thought" class="w-full h-32 p-4 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-400 outline-none bg-slate-50 transition" placeholder="例：良かれと思ってアドバイスしたのに..."></textarea>
             </div>
-            
+
             <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start space-x-3">
                 <span class="text-amber-500 mt-0.5 text-lg">⚠️</span>
                 <div class="text-[11px] md:text-xs text-amber-900 leading-relaxed">
@@ -119,6 +119,7 @@
                 });
                 if (!response.ok) throw new Error(response.status);
                 const data = await response.json();
+                console.log("Raw:", data);
                 document.getElementById('loading').classList.add('hidden');
                 document.getElementById('result-section').classList.remove('hidden');
                 const val = (keys, obj) => {
