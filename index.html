@@ -44,7 +44,7 @@
         <div id="result-section" class="hidden space-y-6 mt-8 fade-in">
             <div class="game-card p-6 shadow-md border-l-8 border-indigo-600">
                 <h3 class="text-xs font-bold text-indigo-400 uppercase tracking-widest mb-1">特定された心理ゲーム</h3>
-                <div id="game-name" class="text-2xl font-black text-indigo-900 mb-2">分析中...</div>
+                <div id="game-name" class="text-2xl font-black text-indigo-900 mb-2">-</div>
                 <p id="game-definition" class="text-sm text-slate-500 italic border-t pt-2"></p>
             </div>
 
@@ -105,12 +105,16 @@
 
                 if (!response.ok) throw new Error(`Status: ${response.status}`);
 
+                // JSONとしてパース
                 const data = await response.json();
-                console.log("Received data:", data);
+                console.log("Raw Data:", data);
+                
+                // 表示処理へ
                 displayResults(data);
+
             } catch (error) {
                 console.error("Fetch error:", error);
-                alert("エラーが発生しました。");
+                alert("データの取得に失敗しました。サーバーの起動を待っている可能性があります。少しおいてから再度お試しください。");
                 location.reload();
             }
         }
@@ -119,32 +123,36 @@
             document.getElementById('loading').classList.add('hidden');
             document.getElementById('result-section').classList.remove('hidden');
 
-            // 柔軟にデータを抽出する補助関数
-            const getVal = (keys, obj = data) => {
+            // どんなキー名でも値を拾う究極の関数
+            const safeGet = (keys, obj = data) => {
+                if (!obj) return "-";
                 for (let k of keys) {
-                    if (obj[k] !== undefined && obj[k] !== null) return obj[k];
+                    if (obj[k] !== undefined && obj[k] !== null) {
+                        // オブジェクトが返ってきてしまった場合の保険
+                        return typeof obj[k] === 'object' ? JSON.stringify(obj[k]) : obj[k];
+                    }
                 }
                 return "-";
             };
 
-            // 各項目へ流し込み
-            document.getElementById('game-name').innerText = getVal(['game_name', 'gameName', '心理ゲーム']);
-            document.getElementById('game-definition').innerText = getVal(['definition', 'description', '定義', '解説']);
-            document.getElementById('prediction').innerText = getVal(['prediction', 'future', '予測', '破綻']);
-            document.getElementById('hidden-motive').innerText = getVal(['hidden_motive', 'payoff', '真実', '利得']);
-            document.getElementById('advice').innerText = getVal(['advice', 'solution', '助言', '回避策']);
+            // メイン項目
+            document.getElementById('game-name').innerText = safeGet(['game_name', 'gameName', '心理ゲーム']);
+            document.getElementById('game-definition').innerText = safeGet(['definition', 'description', '定義', '解説']);
+            document.getElementById('prediction').innerText = safeGet(['prediction', 'future', '予測', '破綻']);
+            document.getElementById('hidden-motive').innerText = safeGet(['hidden_motive', 'payoff', '真実', '利得']);
+            document.getElementById('advice').innerText = safeGet(['advice', 'solution', '助言', '回避策']);
 
-            // 開始ポジションの解析
-            const start = data.position_start || data.start_position || {};
-            updateBadge('pos-start-self', getVal(['self', 'self_pos'], start));
-            updateBadge('pos-start-others', getVal(['others', 'others_pos'], start));
-            document.getElementById('pos-start-desc').innerText = getVal(['description', 'desc', '解説'], start);
+            // 開始ポジションの解析（データが入れ子になっていなくても動くように）
+            const start = data.position_start || data.start_position || data;
+            updateBadge('pos-start-self', safeGet(['self', 'self_pos'], start));
+            updateBadge('pos-start-others', safeGet(['others', 'others_pos'], start));
+            document.getElementById('pos-start-desc').innerText = safeGet(['description', 'desc', '解説'], start);
 
             // 終了ポジションの解析
-            const end = data.position_end || data.end_position || {};
-            updateBadge('pos-end-self', getVal(['self', 'self_pos'], end));
-            updateBadge('pos-end-others', getVal(['others', 'others_pos'], end));
-            document.getElementById('pos-end-desc').innerText = getVal(['description', 'desc', '解説'], end);
+            const end = data.position_end || data.end_position || data;
+            updateBadge('pos-end-self', safeGet(['self', 'self_pos'], end));
+            updateBadge('pos-end-others', safeGet(['others', 'others_pos'], end));
+            document.getElementById('pos-end-desc').innerText = safeGet(['description', 'desc', '解説'], end);
         }
 
         function updateBadge(id, text) {
@@ -152,7 +160,15 @@
             if (!el) return;
             const val = String(text || "-").toUpperCase();
             el.innerText = val;
-            el.className = 'ok-badge ' + (val.includes('NOT') ? 'badge-not-ok' : (val.includes('OK') ? 'badge-ok' : 'badge-none'));
+            
+            // 色分けロジックを確実に適用
+            let colorClass = 'badge-none';
+            if (val.includes('NOT')) {
+                colorClass = 'badge-not-ok';
+            } else if (val.includes('OK')) {
+                colorClass = 'badge-ok';
+            }
+            el.className = `ok-badge ${colorClass}`;
         }
     </script>
 </body>
