@@ -106,13 +106,13 @@
                 if (!response.ok) throw new Error(`Status: ${response.status}`);
 
                 const data = await response.json();
-                console.log("Success Data:", data);
+                console.log("Raw Data:", data);
 
-                // --- ここから表示処理を直書き（displayResults関数を介さない） ---
+                // 表示エリアの切り替え
                 document.getElementById('loading').classList.add('hidden');
                 document.getElementById('result-section').classList.remove('hidden');
 
-                // 柔軟に値を拾う補助関数
+                // どんなキー名でも値を拾う補助関数
                 const val = (keys, obj) => {
                     if (!obj) return "-";
                     for (let k of keys) {
@@ -121,7 +121,7 @@
                     return "-";
                 };
 
-                // バッジの色とテキストを更新する補助関数
+                // バッジの文字と色を更新する関数
                 const updateB = (id, text) => {
                     const el = document.getElementById(id);
                     if (!el) return;
@@ -133,16 +133,16 @@
                     el.className = `ok-badge ${colorClass}`;
                 };
 
-                // メイン項目のセット
+                // 各項目にデータを流し込む（キー名のブレを吸収）
                 document.getElementById('game-name').innerText = val(['game_name', 'gameName', '心理ゲーム'], data);
                 document.getElementById('game-definition').innerText = val(['definition', 'description', '定義', '解説'], data);
                 document.getElementById('prediction').innerText = val(['prediction', 'future', '予測', '破綻'], data);
                 document.getElementById('hidden-motive').innerText = val(['hidden_motive', 'payoff', '真実', '利得'], data);
                 document.getElementById('advice').innerText = val(['advice', 'solution', '助言', '回避策'], data);
 
-                // ポジションのセット
-                const start = data.position_start || {};
-                const end = data.position_end || {};
+                // ポジション情報の解析
+                const start = data.position_start || data.start_position || {};
+                const end = data.position_end || data.end_position || {};
 
                 updateB('pos-start-self', val(['self', 'self_pos'], start));
                 updateB('pos-start-others', val(['others', 'others_pos'], start));
@@ -154,7 +154,7 @@
 
             } catch (error) {
                 console.error("Critical Error:", error);
-                alert("データの解析中に問題が発生しました。ブラウザでF12キーを押し、『コンソール』タブのエラー内容を確認してください。");
+                alert("解析に失敗しました。もう一度お試しください。");
                 location.reload();
             }
         }
