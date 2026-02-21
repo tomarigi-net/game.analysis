@@ -109,11 +109,3 @@
                 const response = await fetch(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ "thought": thought })
-                });
-
-                if (!response.ok) throw new Error(`Status: ${response.status}`);
-
-                const data = await response.json();
-                displayResults(data);
-            } catch (error) {
