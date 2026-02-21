@@ -6,6 +6,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 
 app = Flask(__name__)
+# CORSの設定：Github Pagesからのアクセスを許可
 CORS(app, resources={r"/*": {"origins": "https://tomarigi-net.github.io"}})
 
 @app.route('/', methods=['GET', 'POST', 'OPTIONS'], strict_slashes=False)
@@ -13,10 +14,11 @@ def home():
     if request.method == 'OPTIONS':
         return '', 200
     if request.method == 'GET':
-        return jsonify({"status": "online", "message": "Gemini 3 Flash Ready!"})
+        return jsonify({"status": "online", "message": "Gemini 1.5 Flash Ready!"})
 
     api_key = os.environ.get("GEMINI_API_KEY", "").strip()
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key={api_key}"
+    # モデル名を安定版の gemini-1.5-flash に修正
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
 
     try:
         data = request.get_json()
@@ -27,8 +29,11 @@ def home():
             return jsonify({"error": "Empty input"}), 200
 
         # prompt.txt の読み込み
-        with open("prompt.txt", "r", encoding="utf-8") as f:
-            base_prompt = f.read()
+        if os.path.exists("prompt.txt"):
+            with open("prompt.txt", "r", encoding="utf-8") as f:
+                base_prompt = f.read()
+        else:
+            base_prompt = "あなたは心理分析官です。JSON形式で答えてください。"
         
         mode_instruction = "\n【追加制約】ゲーム名称は必ずエリック・バーンの原典にある公式名称から選択してください。" if mode == "strict" else "\n【追加制約】原典に縛られず現代的な名称を自由に命名してください。"
         
@@ -51,6 +56,7 @@ def home():
         
         if 'candidates' in result and result['candidates']:
             ai_text = result['candidates'][0]['content']['parts'][0]['text'].strip()
+            # JSON以外の余計な文字（マークダウンの枠など）を除去
             clean_text = re.sub(r'```json\s*|```', '', ai_text)
             start_idx = clean_text.find('{')
             end_idx = clean_text.rfind('}')
@@ -68,7 +74,7 @@ def home():
     except Exception as e:
         return jsonify({"error": "System error", "detail": str(e)}), 200
 
-# --- ここが重要：Renderのポート開放設定 ---
+# Renderでポートを自動認識させるための設定
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
