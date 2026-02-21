@@ -119,14 +119,18 @@
                 });
                 if (!response.ok) throw new Error(response.status);
                 const data = await response.json();
-                console.log("Raw:", data);
+                console.log("Raw Data:", data);
+                
                 document.getElementById('loading').classList.add('hidden');
                 document.getElementById('result-section').classList.remove('hidden');
+                
+                // 表記揺れ対応の抽出関数
                 const val = (keys, obj) => {
                     if (!obj) return "-";
                     for (let k of keys) { if (obj[k] !== undefined && obj[k] !== null) return obj[k]; }
                     return "-";
                 };
+
                 const updateB = (id, text) => {
                     const el = document.getElementById(id);
                     if (!el) return;
@@ -137,23 +141,29 @@
                     else if (v.includes('OK')) c = 'badge-ok';
                     el.className = 'ok-badge ' + c;
                 };
+
+                // 各項目の流し込み（日本語キーにも対応）
                 document.getElementById('game-name').innerText = val(['game_name', 'gameName', '心理ゲーム'], data);
-                document.getElementById('game-definition').innerText = val(['definition', 'description', '定義'], data);
-                document.getElementById('prediction').innerText = val(['prediction', 'future', '予測'], data);
-                document.getElementById('hidden-motive').innerText = val(['hidden_motive', 'payoff', '利得'], data);
-                document.getElementById('advice').innerText = val(['advice', 'solution', '助言'], data);
-                const s = data.position_start || data.start_position || {};
-                const e = data.position_end || data.end_position || {};
-                updateB('pos-start-self', val(['self'], s));
-                updateB('pos-start-others', val(['others'], s));
-                document.getElementById('pos-start-desc').innerText = val(['description'], s);
-                updateB('pos-end-self', val(['self'], e));
-                updateB('pos-end-others', val(['others'], e));
-                document.getElementById('pos-end-desc').innerText = val(['description'], e);
+                document.getElementById('game-definition').innerText = val(['definition', 'description', '定義', '解説'], data);
+                document.getElementById('prediction').innerText = val(['prediction', 'future', '予測', '破綻'], data);
+                document.getElementById('hidden-motive').innerText = val(['hidden_motive', 'payoff', '利得', '真実'], data);
+                document.getElementById('advice').innerText = val(['advice', 'solution', '助言', '回避策'], data);
+
+                const s = data.position_start || data.start_position || data.開始時 || {};
+                const e = data.position_end || data.end_position || data.結末 || {};
+                
+                updateB('pos-start-self', val(['self', '自分'], s));
+                updateB('pos-start-others', val(['others', '相手'], s));
+                document.getElementById('pos-start-desc').innerText = val(['description', '解説'], s);
+                
+                updateB('pos-end-self', val(['self', '自分'], e));
+                updateB('pos-end-others', val(['others', '相手'], e));
+                document.getElementById('pos-end-desc').innerText = val(['description', '解説'], e);
+
             } catch (error) {
                 console.error(error);
                 alert("エラーが発生しました。混雑している場合は時間を置いてお試しください。");
-                location.reload();
+                resetDisplay();
             } finally {
                 if (btn) btn.disabled = false;
             }
