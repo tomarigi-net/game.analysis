@@ -54,29 +54,58 @@
                         <span class="slider"></span>
                     </label>
                 </div>
-
-                <textarea id="user-thought" class="w-full h-32 p-4 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-400 outline-none bg-slate-50 transition" placeholder="やり取りを入力..."></textarea>
-                <button onclick="analyzeThought()" id="submit-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-2xl transition-all shadow-lg text-lg">分析する</button>
+                <div>
+                    <label class="block text-lg font-bold mb-3 text-slate-700">どんなやり取りがありましたか？</label>
+                    <textarea id="user-thought" class="w-full h-32 p-4 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-400 outline-none bg-slate-50 transition" placeholder="例：良かれと思ってアドバイスしたのに..."></textarea>
+                </div>
+                <button onclick="analyzeThought()" id="submit-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-2xl transition-all shadow-lg text-lg">深層心理を分析する</button>
             </div>
 
             <div id="loading" class="hidden text-center py-16">
                 <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-indigo-500 border-t-transparent"></div>
+                <p class="mt-6 text-indigo-800 font-bold">解析中...</p>
             </div>
 
             <div id="result-section" class="hidden space-y-6 mt-8 fade-in">
                 <div class="game-card p-6 shadow-md border-l-8 border-indigo-600">
-                    <h3 id="game-name" class="text-2xl font-black text-indigo-900 mb-2">-</h3>
+                    <h3 class="text-xs font-bold text-indigo-400 uppercase tracking-widest mb-1">特定された心理ゲーム</h3>
+                    <div id="game-name" class="text-2xl font-black text-indigo-900 mb-2">-</div>
                     <p id="game-definition" class="text-sm text-slate-500 italic border-t pt-2"></p>
                     <p id="game-scenario" class="text-sm text-slate-700 mt-2 bg-slate-50 p-3 rounded-lg border border-slate-100">-</p>
                 </div>
 
-                <div class="bg-white border border-slate-200 rounded-2xl p-6">
-                    <h3 class="font-bold text-slate-800 mb-2">🔍 無意識の利得</h3>
-                    <p id="hidden-motive" class="text-slate-600">-</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="game-card p-5 bg-blue-50/30">
+                        <h4 id="label-start" class="text-blue-700 font-bold text-sm mb-3">▶ 開始時の立ち位置</h4>
+                        <div class="flex justify-between items-center mb-2">
+                            <span id="pos-start-self" class="ok-badge badge-none">-</span>
+                            <span id="pos-start-others" class="ok-badge badge-none">-</span>
+                        </div>
+                        <p id="pos-start-desc" class="text-xs text-slate-600"></p>
+                    </div>
+                    <div class="game-card p-5 bg-rose-50/30">
+                        <h4 id="label-end" class="text-rose-700 font-bold text-sm mb-3">▼ 結末の立ち位置</h4>
+                        <div class="flex justify-between items-center mb-2">
+                            <span id="pos-end-self" class="ok-badge badge-none">-</span>
+                            <span id="pos-end-others" class="ok-badge badge-none">-</span>
+                        </div>
+                        <p id="pos-end-desc" class="text-xs text-slate-600"></p>
+                    </div>
                 </div>
+
+                <div id="prediction-box" class="bg-slate-900 text-white rounded-3xl p-8 shadow-2xl relative overflow-hidden">
+                    <h3 class="text-indigo-400 text-sm font-bold uppercase mb-3">⚠️ このまま進んだ場合の「破綻」</h3>
+                    <p id="prediction" class="text-xl leading-relaxed font-bold">-</p>
+                </div>
+
+                <div class="bg-white border border-slate-200 rounded-2xl p-6">
+                    <h3 class="font-bold text-slate-800 mb-2">🔍 ゲームから得られる利得（無意識の真実）</h3>
+                    <p id="hidden-motive" class="text-slate-600 text-base">-</p>
+                </div>
+
                 <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-6">
                     <h3 class="font-bold text-emerald-800 mb-2">💡 回避策</h3>
-                    <p id="advice" class="text-emerald-900 font-bold">-</p>
+                    <p id="advice" class="text-emerald-900 font-bold text-base">-</p>
                 </div>
 
                 <div class="mt-8 border-t border-slate-200 pt-6">
@@ -85,11 +114,11 @@
                         <span id="accordion-icon" class="text-slate-400 transition-transform duration-300">▼</span>
                     </button>
                     <div id="original-text-container" class="hidden mt-2 p-5 bg-white border border-slate-100 rounded-2xl shadow-inner">
-                        <p id="display-user-thought" class="text-slate-600 text-sm whitespace-pre-wrap"></p>
+                        <p id="display-user-thought" class="text-slate-600 text-sm whitespace-pre-wrap leading-relaxed"></p>
                     </div>
                 </div>
 
-                <button onclick="resetDisplay()" class="w-full py-6 text-slate-400 font-bold">入力画面に戻る</button>
+                <button onclick="resetDisplay()" class="w-full py-6 text-slate-400 hover:text-indigo-600 font-bold">入力画面に戻る</button>
             </div>
         </div>
     </div>
@@ -130,39 +159,82 @@
             }
         }
 
+        function resetDisplay() {
+            document.getElementById('user-thought').value = "";
+            document.getElementById('result-section').classList.add('hidden');
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('input-section').classList.remove('hidden');
+            document.getElementById('original-text-container').classList.add('hidden');
+            document.getElementById('accordion-icon').style.transform = 'rotate(0deg)';
+            window.scrollTo(0, 0);
+        }
+
         async function analyzeThought() {
             const thought = document.getElementById('user-thought').value.trim();
             if (!thought) return;
+            
             document.getElementById('display-user-thought').innerText = thought;
             document.getElementById('input-section').classList.add('hidden');
             document.getElementById('loading').classList.remove('hidden');
             
             try {
-                const res = await fetch(API_URL, {
+                const response = await fetch(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ "thought": thought, "mode": document.getElementById('mode-toggle').checked ? "strict" : "flexible" })
+                    body: JSON.stringify({ 
+                        "thought": thought,
+                        "mode": document.getElementById('mode-toggle').checked ? "strict" : "flexible"
+                    })
                 });
-                const data = await res.json();
+                
+                let data = await response.json();
+                if (typeof data === 'string') data = JSON.parse(data);
+
                 document.getElementById('loading').classList.add('hidden');
                 document.getElementById('result-section').classList.remove('hidden');
                 
-                document.getElementById('game-name').innerText = data.game_name || "解析失敗";
-                document.getElementById('game-definition').innerText = data.definition || "";
-                document.getElementById('game-scenario').innerText = data.scenario || "（要約なし）";
-                document.getElementById('hidden-motive').innerText = data.hidden_motive || "-";
-                document.getElementById('advice').innerText = data.advice || "-";
-            } catch (e) {
-                alert("通信エラー");
+                const getVal = (o, k) => {
+                    if (!o) return "-";
+                    for (let x of k) { if (o[x] !== undefined && o[x] !== null && o[x] !== "") return o[x]; }
+                    return "-";
+                };
+
+                const setB = (id, val) => {
+                    const el = document.getElementById(id);
+                    if (!el) return;
+                    const v = String(val || "-").toUpperCase();
+                    el.innerText = v;
+                    el.className = 'ok-badge ' + (v.includes('NOT') ? 'badge-not-ok' : v.includes('OK') ? 'badge-ok' : 'badge-none');
+                };
+
+                document.getElementById('game-name').innerText = getVal(data, ['game_name', 'gameName', '心理ゲーム']);
+                document.getElementById('game-definition').innerText = getVal(data, ['definition', '解説']);
+                document.getElementById('game-scenario').innerText = getVal(data, ['scenario', '要約']);
+                document.getElementById('prediction').innerText = getVal(data, ['prediction', '予測']);
+                document.getElementById('hidden-motive').innerText = getVal(data, ['hidden_motive', '利得']);
+                document.getElementById('advice').innerText = getVal(data, ['advice', '回避策']);
+
+                const sName = getVal(data, ['subject_name', 'subjectName', '自分']);
+                if (sName !== "-") {
+                    document.getElementById('label-start').innerHTML = `▶ 開始時 (${sName}視点)`;
+                    document.getElementById('label-end').innerHTML = `▼ 結末 (${sName}視点)`;
+                }
+
+                const s = data.position_start || data.start_position || {};
+                const e = data.position_end || data.end_position || {};
+                
+                setB('pos-start-self', getVal(s, ['self', '自分']));
+                setB('pos-start-others', getVal(s, ['others', '相手']));
+                document.getElementById('pos-start-desc').innerText = getVal(s, ['description', '解説']);
+                
+                setB('pos-end-self', getVal(e, ['self', '自分']));
+                setB('pos-end-others', getVal(e, ['others', '相手']));
+                document.getElementById('pos-end-desc').innerText = getVal(e, ['description', '解説']);
+
+            } catch (err) {
+                alert("エラーが発生しました。");
                 resetDisplay();
             }
-        }
-
-        function resetDisplay() {
-            document.getElementById('result-section').classList.add('hidden');
-            document.getElementById('input-section').classList.remove('hidden');
-            document.getElementById('user-thought').value = "";
-            document.getElementById('original-text-container').classList.add('hidden');
         }
     </script>
 </body>
