@@ -55,8 +55,10 @@
                     </label>
                 </div>
                 <div>
-                    <label class="block text-lg font-bold mb-3 text-slate-700">どんなやり取りがありましたか？</label>
-                    <textarea id="user-thought" class="w-full h-32 p-4 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-400 outline-none bg-slate-50 transition" placeholder="例：良かれと思ってアドバイスしたのに..."></textarea>
+                    <label class="block text-lg font-bold mb-1 text-slate-700">どんなやり取りがありましたか？</label>
+                    <p class="text-xs text-slate-500 mb-3">※表面的な会話だけでなく、その時感じた「モヤモヤ」や「違和感」も含めて入力すると精度が上がります。</p>
+                    <textarea id="user-thought" class="w-full h-40 p-4 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-400 outline-none bg-slate-50 transition" 
+                        placeholder="例：部下のミスを指摘したら、最初は謝っていたのに、最後にはなぜか私が責められているような気分になった..."></textarea>
                 </div>
                 <button onclick="analyzeThought()" id="submit-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 rounded-2xl transition-all shadow-lg text-lg">深層心理を分析する</button>
             </div>
