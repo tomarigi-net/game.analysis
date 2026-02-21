@@ -70,7 +70,7 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="game-card p-5 bg-blue-50/30">
-                        <h4 id="label-start" class="text-blue-700 font-bold text-sm mb-3">▶ 開始時の立ち位置</h4>
+                        <h4 class="text-blue-700 font-bold text-sm mb-3">▶ 開始時の立ち位置</h4>
                         <div class="flex justify-between items-center mb-2">
                             <span id="pos-start-self" class="ok-badge badge-none">-</span>
                             <span id="pos-start-others" class="ok-badge badge-none">-</span>
@@ -78,7 +78,7 @@
                         <p id="pos-start-desc" class="text-xs text-slate-600"></p>
                     </div>
                     <div class="game-card p-5 bg-rose-50/30">
-                        <h4 id="label-end" class="text-rose-700 font-bold text-sm mb-3">▼ 結末の立ち位置</h4>
+                        <h4 class="text-rose-700 font-bold text-sm mb-3">▼ 結末の立ち位置</h4>
                         <div class="flex justify-between items-center mb-2">
                             <span id="pos-end-self" class="ok-badge badge-none">-</span>
                             <span id="pos-end-others" class="ok-badge badge-none">-</span>
@@ -154,10 +154,6 @@
                     el.className = 'ok-badge badge-none';
                 }
             });
-            // ラベルのリセット
-            document.getElementById('label-start').innerText = "▶ 開始時の立ち位置";
-            document.getElementById('label-end').innerText = "▼ 結末の立ち位置";
-            
             window.scrollTo(0, 0);
         }
 
@@ -211,22 +207,11 @@
                     el.className = 'ok-badge ' + (v.includes('NOT') ? 'badge-not-ok' : v.includes('OK') ? 'badge-ok' : 'badge-none');
                 };
 
-                // 自動判別された名前の取得
-                const sName = getVal(data, ['subject_name', 'subjectName', '自分']);
-                const tName = getVal(data, ['target_name', 'targetName', '相手']);
-
-                // 画面表示への反映
                 document.getElementById('game-name').innerText = getVal(data, ['game_name', 'gameName', '心理ゲーム', 'name']);
                 document.getElementById('game-definition').innerText = getVal(data, ['definition', 'description', '定義', '解説']);
                 document.getElementById('prediction').innerText = getVal(data, ['prediction', 'future', '予測', '破綻']);
                 document.getElementById('hidden-motive').innerText = getVal(data, ['hidden_motive', 'payoff', '利得', '真実']);
                 document.getElementById('advice').innerText = getVal(data, ['advice', 'solution', '助言', '回避策']);
-
-                // 名前付きラベルへの更新
-                if(sName !== "-") {
-                    document.getElementById('label-start').innerText = `▶ 開始時 (${sName}視点)`;
-                    document.getElementById('label-end').innerText = `▼ 結末 (${sName}視点)`;
-                }
 
                 const s = data.position_start || data.start_position || data.開始時 || {};
                 const e = data.position_end || data.end_position || data.結末 || {};
