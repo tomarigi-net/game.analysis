@@ -131,7 +131,7 @@
                     <span class="text-amber-500 mt-0.5 text-lg">⚠️</span>
                     <div class="text-[11px] md:text-xs text-amber-900 leading-relaxed">
                         <p class="font-bold mb-1 underline">ご利用上の注意</p>
-                        深刻なリスク（自傷・他害等）を伴う内容はAIがブロックしエラーとなります。また、無料枠のため混雑時は「503」や「429」エラーが出ますが、その場合は数分置いてから再試行してください。なお通常、結果が出るまで30秒以上かかる場合もあります。
+                        <p>深刻なリスク（自傷・他害等）を伴う内容はAIがブロックしエラーとなります。また、無料枠のため混雑時は「503」や「429」エラーが出ますが、その場合は数分置いてから再試行してください。なお通常、結果が出るまで30秒以上かかる場合もあります。</p>
                     </div>
                 </div>
             </div>
@@ -313,8 +313,35 @@
                     el.className = 'ok-badge ' + (v.includes('NOT') ? 'badge-not-ok' : v.includes('OK') ? 'badge-ok' : 'badge-none');
                 };
 
-                const jpName = getVal(data, ['game_name', '心理ゲーム']);
+                // --- 心理ゲーム名称の変換辞書（36種類対応） ---
+                const gameNameMap = {
+                    "Alcoholic": "アルコール依存症", "Debtor": "借金取り", "Kick Me": "私を蹴って（キック・ミー）",
+                    "NIGYSOB": "捕まえたぞ、この野郎（ニグソブ）", "See What You Made Me Do": "ほら、お前のせいでこうなった",
+                    "Corner": "追い詰め（コーナー）", "Courtroom": "法廷", "If It Weren't For You": "あんたさえいなけりゃ（お前のせいだ）",
+                    "Look How Hard I've Tried": "これほど努力したのに", "Sweetheart": "愛する人（スウィートハート）",
+                    "Ain't It Awful": "ひどいもんじゃない", "Blemish": "欠点探し（ブレミッシュ）", "Schlemiel": "不手際（シュレミール）",
+                    "Why Don't You - Yes But": "はい、でも（イエス・バット）", "Fireman": "火事だ！（ファイアマン）",
+                    "It's Me, Isn't It?": "私なんでしょう？", "Perversion": "変質（パーバージョン）", "Rapo": "痴漢だ！（レイポ）",
+                    "Stocking Game": "ストッキング・ゲーム", "Uproar": "激昂（アップロア）", "Cops and Robbers": "泥棒と警察",
+                    "How Do You Get Out of Here?": "どうやってここを抜け出すか？", "Let's Pull a Fast One on Joey": "ジョーイを一杯食わせよう",
+                    "Greenhouse": "温室", "I'm Only Trying to Help You": "せっかく助けようとしているのに",
+                    "Indigence": "貧困", "Peasant": "お百姓さん（農夫）", "Psychiatry": "精神医学", "Stupid": "愚か者",
+                    "Wooden Leg": "義足（木製の足）", "Busman's Holiday": "バス運転手の休日", "Cavalier": "騎士",
+                    "Happy to Help": "喜んでお手伝い", "Homely Sage": "家庭の賢者", "They'll Be Glad They Knew Me": "私を知って良かったと思うだろう",
+                    "Look Ma, No Hands": "見て、お母さん、手を使わずに"
+                };
+
+                let jpName = getVal(data, ['game_name', '心理ゲーム']);
                 const enName = getVal(data, ['english_name', '英語名']);
+
+                // 辞書に一致するものがあれば置換
+                for (const [enKey, officialName] of Object.entries(gameNameMap)) {
+                    if (enName.toLowerCase().includes(enKey.toLowerCase()) || jpName.toLowerCase().includes(enKey.toLowerCase())) {
+                        jpName = officialName;
+                        break;
+                    }
+                }
+
                 document.getElementById('game-name').innerText = (enName !== "-" && !jpName.includes(enName)) ? `${jpName} (${enName})` : jpName;
 
                 document.getElementById('game-definition').innerText = getVal(data, ['definition', '解説']);
