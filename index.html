@@ -235,7 +235,7 @@
             document.getElementById('loading').classList.remove('hidden');
             
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 60000); // 60秒待機
+            const timeoutId = setTimeout(() => controller.abort(), 90000); // 90秒待機
             
             try {
                 const response = await fetch(API_URL, {
@@ -253,11 +253,14 @@
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
                 const rawText = await response.text();
+                console.log("Raw Response:", rawText);
+
                 let data;
                 try {
-                    // JSON前後の装飾記号を除去して解析
-                    const cleanJson = rawText.replace(/```json/g, "").replace(/```/g, "").trim();
-                    data = JSON.parse(cleanJson);
+                    // 【究極のJSON抽出】 AIが余計な文章を添えても { から } までを抜き出す
+                    const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+                    if (!jsonMatch) throw new Error("JSON形式のデータが見つかりませんでした。");
+                    data = JSON.parse(jsonMatch[0]);
                 } catch (e) {
                     console.error("JSON Parse Error:", e);
                     throw new Error("データの解析に失敗しました。");
@@ -288,6 +291,7 @@
                     el.className = 'ok-badge ' + (v.includes('NOT') ? 'badge-not-ok' : v.includes('OK') ? 'badge-ok' : 'badge-none');
                 };
 
+                // 表示の反映
                 const jpName = getVal(data, ['game_name', '心理ゲーム']);
                 const enName = getVal(data, ['english_name', '英語名']);
                 document.getElementById('game-name').innerText = (enName !== "-" && !jpName.includes(enName)) ? `${jpName} (${enName})` : jpName;
