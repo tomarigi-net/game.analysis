@@ -221,9 +221,8 @@
     </div>
 
     <script>
-        // --- 修正箇所：新しいエンドポイントとセキュリティヘッダー ---
-        const API_URL = 'https://game-analysis.onrender.com/analyze_v1_secure';
-        const ACCESS_TOKEN = 'your-secure-handshake-v1'; // backend.pyと一致させる
+        // --- 修正箇所：URLを安定版に戻し、不要なトークン変数を削除 ---
+        const API_URL = 'https://game-analysis.onrender.com/';
         const MY_PASSWORD = "okok"; 
 
         function checkPassword() {
@@ -278,12 +277,11 @@
             document.getElementById('loading').classList.remove('hidden');
             
             try {
-                // --- 修正箇所：カスタムヘッダーの追加 ---
+                // --- 修正箇所：ヘッダーからカスタムトークンを削除 ---
                 const response = await fetch(API_URL, {
                     method: 'POST',
                     headers: { 
-                        'Content-Type': 'application/json',
-                        'X-Custom-Access-Token': ACCESS_TOKEN
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({ 
                         "thought": thought,
@@ -373,7 +371,7 @@
 
             } catch (err) {
                 console.error(err);
-                alert("エラーが発生しました。混雑しているか、セキュリティ制限により遮断された可能性があります。");
+                alert("エラーが発生しました。混雑しているか、サーバーとの通信に問題があります。数分置いてから再試行してください。");
                 resetDisplay();
             }
         }
