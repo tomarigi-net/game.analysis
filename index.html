@@ -162,9 +162,7 @@
                     <h3 class="font-bold text-indigo-800 mb-2 flex items-center">
                         <span class="mr-2 text-lg">🌱</span>心の処方箋
                     </h3>
-                    <p id="counseling-msg" class="text-slate-700 text-sm leading-relaxed italic whitespace-pre-wrap">
-                        -
-                    </p>
+                    <p id="counseling-msg" class="text-slate-700 text-sm leading-relaxed italic whitespace-pre-wrap">-</p>
                 </div>
 
                 <div class="mt-8 border-t border-slate-200 pt-6">
@@ -236,6 +234,9 @@
             document.getElementById('input-section').classList.add('hidden');
             document.getElementById('loading').classList.remove('hidden');
             
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 60000); // 60秒待機
+            
             try {
                 const response = await fetch(API_URL, {
                     method: 'POST',
@@ -243,11 +244,24 @@
                     body: JSON.stringify({ 
                         "thought": thought,
                         "mode": document.getElementById('mode-toggle').checked ? "strict" : "flexible"
-                    })
+                    }),
+                    signal: controller.signal
                 });
                 
-                let data = await response.json();
-                if (typeof data === 'string') data = JSON.parse(data);
+                clearTimeout(timeoutId);
+
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+                const rawText = await response.text();
+                let data;
+                try {
+                    // JSON前後の装飾記号を除去して解析
+                    const cleanJson = rawText.replace(/```json/g, "").replace(/```/g, "").trim();
+                    data = JSON.parse(cleanJson);
+                } catch (e) {
+                    console.error("JSON Parse Error:", e);
+                    throw new Error("データの解析に失敗しました。");
+                }
 
                 document.getElementById('loading').classList.add('hidden');
                 document.getElementById('result-section').classList.remove('hidden');
@@ -283,7 +297,6 @@
                 document.getElementById('prediction').innerText = getVal(data, ['prediction', '予測']);
                 document.getElementById('hidden-motive').innerText = getVal(data, ['hidden_motive', '利得']);
                 document.getElementById('advice').innerText = getVal(data, ['advice', '回避策']);
-                
                 document.getElementById('counseling-msg').innerText = getVal(data, ['counseling', 'カウンセリング']);
 
                 const sName = getVal(data, ['subject_name', '自分']);
@@ -305,7 +318,11 @@
 
             } catch (err) {
                 console.error(err);
-                alert("エラーが発生しました。");
+                if (err.name === 'AbortError') {
+                    alert("【分析中断】\nTimeout\n詳細: 解析に時間がかかっています。再度実行してください。");
+                } else {
+                    alert("エラーが発生しました: " + err.message);
+                }
                 resetDisplay();
             }
         }
