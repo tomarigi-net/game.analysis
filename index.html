@@ -30,6 +30,12 @@
         .dot:nth-child(2) { animation-delay: 0.2s; }
         .dot:nth-child(3) { animation-delay: 0.4s; }
         @keyframes wave { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+        /* 読み上げボタンのスタイル */
+        .speak-btn { cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; background: #eef2ff; }
+        .speak-btn:hover { background: #e0e7ff; transform: scale(1.1); }
+        .speaking { animation: pulse-blue 1.5s infinite; color: #6366f1; }
+        @keyframes pulse-blue { 0% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(99, 102, 241, 0); } 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); } }
     </style>
 </head>
 <body class="min-h-screen pb-12">
@@ -129,7 +135,12 @@
 
             <div id="result-section" class="hidden space-y-6 mt-8 fade-in">
                 <div class="game-card p-6 shadow-md border-l-8 border-indigo-600">
-                    <h3 class="text-xs font-bold text-indigo-400 uppercase tracking-widest mb-1">特定された心理ゲーム</h3>
+                    <div class="flex justify-between items-start mb-1">
+                        <h3 class="text-xs font-bold text-indigo-400 uppercase tracking-widest">特定された心理ゲーム</h3>
+                        <button onclick="speakResult()" id="read-aloud-btn" class="speak-btn" title="結果を読み上げる">
+                            <span id="speaker-icon">🔊</span>
+                        </button>
+                    </div>
                     <div id="game-name" class="text-2xl font-black text-indigo-900 mb-2">-</div>
                     <p id="game-definition" class="text-sm text-slate-500 italic border-t pt-2"></p>
                     <p id="game-scenario" class="text-sm text-slate-700 mt-2 bg-slate-50 p-3 rounded-lg border border-slate-100">-</p>
@@ -230,6 +241,7 @@
         }
 
         function resetDisplay() {
+            if (window.speechSynthesis.speaking) window.speechSynthesis.cancel();
             document.getElementById('user-thought').value = "";
             document.getElementById('result-section').classList.add('hidden');
             document.getElementById('loading').classList.add('hidden');
@@ -319,6 +331,28 @@
                 alert("エラーが発生しました。");
                 resetDisplay();
             }
+        }
+
+        function speakResult() {
+            const btn = document.getElementById('read-aloud-btn');
+            const icon = document.getElementById('speaker-icon');
+            if (window.speechSynthesis.speaking) {
+                window.speechSynthesis.cancel();
+                btn.classList.remove('speaking');
+                icon.innerText = "🔊";
+                return;
+            }
+            const gameName = document.getElementById('game-name').innerText;
+            const definition = document.getElementById('game-definition').innerText;
+            const advice = document.getElementById('advice').innerText;
+            const text = `特定された心理ゲームは、${gameName}。解説。${definition}。アドバイス。${advice}`;
+            const uttr = new SpeechSynthesisUtterance(text);
+            uttr.lang = 'ja-JP';
+            uttr.rate = 1.0;
+            uttr.pitch = 1.1;
+            uttr.onstart = () => { btn.classList.add('speaking'); icon.innerText = "🛑"; };
+            uttr.onend = () => { btn.classList.remove('speaking'); icon.innerText = "🔊"; };
+            window.speechSynthesis.speak(uttr);
         }
     </script>
 </body>
