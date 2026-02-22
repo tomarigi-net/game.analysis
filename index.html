@@ -36,6 +36,18 @@
         .speak-btn:hover { background: #e0e7ff; transform: scale(1.1); }
         .speaking { animation: pulse-blue 1.5s infinite; color: #6366f1; }
         @keyframes pulse-blue { 0% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(99, 102, 241, 0); } 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); } }
+
+        /* 🖨️ 印刷用設定 */
+        @media print {
+            #login-screen, #input-section, #loading, button, .switch, .speak-btn, #read-aloud-btn, #accordion-icon { display: none !important; }
+            body { background-color: white !important; padding: 0 !important; }
+            .min-h-screen { min-height: auto !important; padding-bottom: 0 !important; }
+            .game-card { border: 1px solid #ddd !important; box-shadow: none !important; break-inside: avoid; }
+            #prediction-box { background: #f8fafc !important; color: #1e293b !important; border: 2px solid #1e293b !important; }
+            #prediction-box h3 { color: #475569 !important; }
+            #original-text-container { display: block !important; border: 1px solid #eee !important; }
+            header h1 { color: black !important; }
+        }
     </style>
 </head>
 <body class="min-h-screen pb-12">
@@ -198,6 +210,10 @@
                         <p id="display-user-thought" class="text-slate-600 text-sm whitespace-pre-wrap leading-relaxed"></p>
                     </div>
                 </div>
+
+                <button onclick="window.print()" class="w-full py-4 mt-2 bg-slate-800 text-white font-bold rounded-2xl shadow-lg hover:bg-slate-900 transition flex items-center justify-center gap-2">
+                    <span>🖨️</span> 結果を印刷 / PDF保存
+                </button>
 
                 <button onclick="resetDisplay()" class="w-full py-6 text-slate-400 hover:text-indigo-600 font-bold">入力画面に戻る</button>
             </div>
