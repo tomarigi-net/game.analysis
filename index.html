@@ -8,80 +8,31 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         :root { --game-main: #f8fafc; --game-accent: #6366f1; --game-dark: #1e293b; }
-        body { 
-            background: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 100%);
-            color: var(--game-dark); 
-            font-family: sans-serif; 
-        }
-        .game-card { 
-            background: white; 
-            border: 1px solid #e2e8f0; 
-            border-radius: 1.5rem; 
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
-        }
+        body { background-color: var(--game-main); color: var(--game-dark); font-family: sans-serif; }
+        .game-card { background: white; border: 1px solid #e2e8f0; border-radius: 1.5rem; }
         .ok-badge { padding: 2px 8px; border-radius: 6px; font-weight: bold; font-size: 0.75rem; min-width: 80px; text-align: center; display: inline-block; }
-        .badge-ok { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
-        .badge-not-ok { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+        .badge-ok { background: #dcfce7; color: #166534; }
+        .badge-not-ok { background: #fee2e2; color: #991b1b; }
         .badge-none { background: #f1f5f9; color: #94a3b8; }
         .fade-in { animation: fadeIn 0.5s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .hidden { display: none !important; }
-        
         .switch { position: relative; display: inline-block; width: 50px; height: 26px; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .4s; border-radius: 34px; }
         .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
         input:checked + .slider { background-color: #6366f1; }
         input:checked + .slider:before { transform: translateX(24px); }
-        textarea:focus { border-color: #6366f1 !important; outline: none; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2); }
     </style>
 </head>
 <body class="min-h-screen pb-12">
 
-    <div id="login-screen" class="max-w-md mx-auto px-4 py-12">
-        <div class="game-card shadow-2xl p-8 border-t-4 border-indigo-500 bg-white">
-            <div class="text-center mb-6">
-                <h1 class="text-2xl font-black text-indigo-900 mb-2">心理ゲーム・アナライザー</h1>
-                <p class="text-sm text-indigo-600 font-medium italic">〜 交流分析理論に基づく深層心理の解明 〜</p>
-            </div>
-
-            <div class="bg-indigo-50 border border-indigo-100 rounded-2xl p-5 mb-6 text-left">
-                <div class="flex items-center gap-3 mb-2 text-indigo-800 font-bold">
-                    <span class="text-xl">🛡️</span>
-                    <h3 class="text-sm">プライバシーへの配慮</h3>
-                </div>
-                <p class="text-[11px] text-indigo-800 leading-relaxed">
-                    本アプリでは、氏名・メールアドレス等の個人情報の入力は一切不要です。必要なのは「やり取りの内容」のみ。入力データも解析終了後に破棄され、サーバーに残ることはありません。
-                </p>
-            </div>
-
-            <div class="grid grid-cols-2 gap-2 mb-8 bg-slate-50 p-4 rounded-xl border border-slate-100">
-                <div class="flex items-center text-[10px] text-slate-600"><span class="text-indigo-400 mr-1 text-xs">✔</span>ゲームの特定</div>
-                <div class="flex items-center text-[10px] text-slate-600"><span class="text-indigo-400 mr-1 text-xs">✔</span>無意識の利得</div>
-                <div class="flex items-center text-[10px] text-slate-600"><span class="text-indigo-400 mr-1 text-xs">✔</span>OK牧場の変遷</div>
-                <div class="flex items-center text-[10px] text-slate-600"><span class="text-indigo-400 mr-1 text-xs">✔</span>残酷な結末予測</div>
-                <div class="flex items-center text-[10px] text-slate-600"><span class="text-indigo-400 mr-1 text-xs">✔</span>具体的対応策</div>
-                <div class="flex items-center text-[10px] text-slate-600"><span class="text-indigo-400 mr-1 text-xs">✔</span>心の処方箋</div>
-            </div>
-
-            <div class="mb-10 text-center">
-                <h2 class="text-xs font-bold text-slate-500 mb-3 uppercase tracking-widest">Private Access</h2>
-                <input type="password" id="pass-input" class="w-full p-4 border rounded-2xl mb-4 text-center outline-none focus:ring-2 focus:ring-indigo-400 bg-slate-50 text-lg" placeholder="パスワードを入力">
-                <button onclick="checkPassword()" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl hover:bg-indigo-700 transition shadow-lg active:scale-95 text-lg">分析を開始する</button>
-                <p id="login-error" class="text-rose-500 text-sm mt-4 hidden font-bold">パスワードが正しくありません</p>
-            </div>
-
-            <div class="pt-6 border-t border-slate-100 text-[10px] text-slate-400 leading-relaxed space-y-4 text-left">
-                <section>
-                    <h4 class="font-bold text-slate-500 mb-1 text-[11px]">免責事項</h4>
-                    <p>AIによる分析は気づきを支援するもので、医学的診断や治療を代替しません。本ツールの利用により生じたいかなる結果についても運営者は責任を負いません。</p>
-                </section>
-                
-                <div class="text-center pt-2 text-slate-300 font-medium">
-                    © 2026 心理ゲーム・アナライザー運営（izumi）<br>
-                    Based on Eric Berne's Transactional Analysis
-                </div>
-            </div>
+    <div id="login-screen" class="max-w-md mx-auto px-4 py-20">
+        <div class="game-card shadow-2xl p-8 text-center border-t-4 border-indigo-500">
+            <h2 class="text-xl font-bold text-indigo-900 mb-6">プライベート・アクセス</h2>
+            <input type="password" id="pass-input" class="w-full p-4 border rounded-2xl mb-4 text-center outline-none focus:ring-2 focus:ring-indigo-400" placeholder="パスワードを入力">
+            <button onclick="checkPassword()" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-2xl hover:bg-indigo-700 transition shadow-lg">入場する</button>
+            <p id="login-error" class="text-rose-500 text-sm mt-4 hidden">パスワードが違います</p>
         </div>
     </div>
 
@@ -89,11 +40,11 @@
         <div class="max-w-2xl mx-auto px-4 py-10">
             <header class="text-center mb-10">
                 <h1 class="text-3xl font-bold text-indigo-900 leading-tight">心理ゲーム・アナライザー</h1>
-                <p class="text-indigo-600 mt-2 font-medium">「OK &lt;-&gt; not OK」の入れ替わりから、隠されたシナリオを暴く</p>
+                <p class="text-indigo-600 mt-2 font-medium">「OK <-> not OK」の入れ替わりから、隠されたシナリオを暴く</p>
             </header>
 
             <div id="input-section" class="space-y-4">
-                <div class="game-card shadow-xl p-8 space-y-6 border-t-4 border-indigo-500 bg-white">
+                <div class="game-card shadow-xl p-8 space-y-6 border-t-4 border-indigo-500">
                     <div class="flex items-center justify-between bg-slate-50 p-4 rounded-2xl border border-slate-100">
                         <div>
                             <span class="block font-bold text-slate-700 text-sm">エリック・バーン限定モード</span>
@@ -117,7 +68,7 @@
                     <span class="text-amber-500 mt-0.5 text-lg">⚠️</span>
                     <div class="text-[11px] md:text-xs text-amber-900 leading-relaxed">
                         <p class="font-bold mb-1 underline">ご利用上の注意</p>
-                        深刻なリスク（自傷・他害等）を伴う内容はAIがブロックしエラーとなります。また、無料枠のため混雑時は「503」や「429」エラーが出ますが、その場合は数分置いてから再試行してください。
+                        深刻なリスク（自傷・他害等）を伴う内容はAIがブロックしエラーとなります。また、無料枠のため混雑時は「503」や「429」エラーが出ますが、その場合は数分置いてから再試行してください。なお通常、結果が出るまで1分程かかる場合があります。
                     </div>
                 </div>
             </div>
@@ -128,7 +79,7 @@
             </div>
 
             <div id="result-section" class="hidden space-y-6 mt-8 fade-in">
-                <div class="game-card p-6 shadow-md border-l-8 border-indigo-600 bg-white">
+                <div class="game-card p-6 shadow-md border-l-8 border-indigo-600">
                     <h3 class="text-xs font-bold text-indigo-400 uppercase tracking-widest mb-1">特定された心理ゲーム</h3>
                     <div id="game-name" class="text-2xl font-black text-indigo-900 mb-2">-</div>
                     <p id="game-definition" class="text-sm text-slate-500 italic border-t pt-2"></p>
@@ -173,7 +124,9 @@
                     <h3 class="font-bold text-indigo-800 mb-2 flex items-center">
                         <span class="mr-2 text-lg">🌱</span>心の処方箋
                     </h3>
-                    <p id="counseling-msg" class="text-slate-700 text-sm leading-relaxed italic whitespace-pre-wrap">-</p>
+                    <p id="counseling-msg" class="text-slate-700 text-sm leading-relaxed italic whitespace-pre-wrap">
+                        -
+                    </p>
                 </div>
 
                 <div class="mt-8 border-t border-slate-200 pt-6">
@@ -255,26 +208,19 @@
                     })
                 });
                 
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-
                 let data = await response.json();
-                
-                if (data.error) {
-                    alert(`【分析中断】\n${data.error}\n詳細: ${data.detail || "なし"}`);
-                    resetDisplay();
-                    return;
-                }
-
                 if (typeof data === 'string') data = JSON.parse(data);
 
                 document.getElementById('loading').classList.add('hidden');
                 document.getElementById('result-section').classList.remove('hidden');
                 
+                // データ取得用ヘルパー：オブジェクトが返ってきても文字列を抽出する
                 const getVal = (obj, keys) => {
                     if (!obj) return "-";
                     for (let key of keys) {
                         let target = obj[key];
                         if (target !== undefined && target !== null && target !== "") {
+                            // もし中身がさらにオブジェクトなら、その中の 'message' 等を探す
                             if (typeof target === 'object' && !Array.isArray(target)) {
                                 return target.message || target.text || target.content || JSON.stringify(target);
                             }
@@ -292,6 +238,7 @@
                     el.className = 'ok-badge ' + (v.includes('NOT') ? 'badge-not-ok' : v.includes('OK') ? 'badge-ok' : 'badge-none');
                 };
 
+                // 表示処理
                 const jpName = getVal(data, ['game_name', '心理ゲーム']);
                 const enName = getVal(data, ['english_name', '英語名']);
                 document.getElementById('game-name').innerText = (enName !== "-" && !jpName.includes(enName)) ? `${jpName} (${enName})` : jpName;
@@ -301,6 +248,8 @@
                 document.getElementById('prediction').innerText = getVal(data, ['prediction', '予測']);
                 document.getElementById('hidden-motive').innerText = getVal(data, ['hidden_motive', '利得']);
                 document.getElementById('advice').innerText = getVal(data, ['advice', '回避策']);
+                
+                // 🌱 [object Object] を防ぐため、階層を深く探る
                 document.getElementById('counseling-msg').innerText = getVal(data, ['counseling', 'カウンセリング']);
 
                 const sName = getVal(data, ['subject_name', '自分']);
@@ -322,7 +271,7 @@
 
             } catch (err) {
                 console.error(err);
-                alert("通信エラーが発生しました。");
+                alert("エラーが発生しました。");
                 resetDisplay();
             }
         }

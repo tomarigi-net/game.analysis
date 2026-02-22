@@ -42,12 +42,10 @@ def home():
             }
         }
 
-        # --- 修正箇所：timeoutを60から25に変更 ---
-        # Gunicornのタイムアウト（通常30秒）より先にエラーを返すことでサーバー死を防ぎます
-        response = requests.post(url, json=payload, timeout=25)
+        response = requests.post(url, json=payload, timeout=60)
         
         if response.status_code != 200:
-            return jsonify({"error": "API Error", "detail": "AIサーバーが混雑しています。少し待ってからお試しください。"}), 200
+            return jsonify({"error": "API Error", "detail": response.text}), 200
 
         result = response.json()
         
@@ -67,9 +65,6 @@ def home():
         else:
             return jsonify({"error": "No response from AI"}), 200
 
-    except requests.exceptions.Timeout:
-        # タイムアウト時に具体的なメッセージを返して、サーバーのフリーズを防ぐ
-        return jsonify({"error": "Timeout", "detail": "解析に時間がかかっています。再度実行してください。"}), 200
     except Exception as e:
         return jsonify({"error": "System error", "detail": str(e)}), 200
 
