@@ -162,7 +162,9 @@
                     <h3 class="font-bold text-indigo-800 mb-2 flex items-center">
                         <span class="mr-2 text-lg">🌱</span>心の処方箋
                     </h3>
-                    <p id="counseling-msg" class="text-slate-700 text-sm leading-relaxed italic whitespace-pre-wrap">-</p>
+                    <p id="counseling-msg" class="text-slate-700 text-sm leading-relaxed italic whitespace-pre-wrap">
+                        -
+                    </p>
                 </div>
 
                 <div class="mt-8 border-t border-slate-200 pt-6">
@@ -181,7 +183,7 @@
     </div>
 
     <script>
-        const API_URL = 'https://game-analysis.onrender.com';
+        const API_URL = 'https://game-analysis.onrender.com/';
         const MY_PASSWORD = "izumi"; 
 
         function checkPassword() {
@@ -234,9 +236,6 @@
             document.getElementById('input-section').classList.add('hidden');
             document.getElementById('loading').classList.remove('hidden');
             
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 90000); // 90秒待機
-            
             try {
                 const response = await fetch(API_URL, {
                     method: 'POST',
@@ -244,27 +243,11 @@
                     body: JSON.stringify({ 
                         "thought": thought,
                         "mode": document.getElementById('mode-toggle').checked ? "strict" : "flexible"
-                    }),
-                    signal: controller.signal
+                    })
                 });
                 
-                clearTimeout(timeoutId);
-
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-
-                const rawText = await response.text();
-                console.log("Raw Response:", rawText);
-
-                let data;
-                try {
-                    // 【究極のJSON抽出】 AIが余計な文章を添えても { から } までを抜き出す
-                    const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-                    if (!jsonMatch) throw new Error("JSON形式のデータが見つかりませんでした。");
-                    data = JSON.parse(jsonMatch[0]);
-                } catch (e) {
-                    console.error("JSON Parse Error:", e);
-                    throw new Error("データの解析に失敗しました。");
-                }
+                let data = await response.json();
+                if (typeof data === 'string') data = JSON.parse(data);
 
                 document.getElementById('loading').classList.add('hidden');
                 document.getElementById('result-section').classList.remove('hidden');
@@ -291,7 +274,6 @@
                     el.className = 'ok-badge ' + (v.includes('NOT') ? 'badge-not-ok' : v.includes('OK') ? 'badge-ok' : 'badge-none');
                 };
 
-                // 表示の反映
                 const jpName = getVal(data, ['game_name', '心理ゲーム']);
                 const enName = getVal(data, ['english_name', '英語名']);
                 document.getElementById('game-name').innerText = (enName !== "-" && !jpName.includes(enName)) ? `${jpName} (${enName})` : jpName;
@@ -301,6 +283,7 @@
                 document.getElementById('prediction').innerText = getVal(data, ['prediction', '予測']);
                 document.getElementById('hidden-motive').innerText = getVal(data, ['hidden_motive', '利得']);
                 document.getElementById('advice').innerText = getVal(data, ['advice', '回避策']);
+                
                 document.getElementById('counseling-msg').innerText = getVal(data, ['counseling', 'カウンセリング']);
 
                 const sName = getVal(data, ['subject_name', '自分']);
@@ -322,11 +305,7 @@
 
             } catch (err) {
                 console.error(err);
-                if (err.name === 'AbortError') {
-                    alert("【分析中断】\nTimeout\n詳細: 解析に時間がかかっています。再度実行してください。");
-                } else {
-                    alert("エラーが発生しました: " + err.message);
-                }
+                alert("エラーが発生しました。");
                 resetDisplay();
             }
         }

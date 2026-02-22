@@ -16,7 +16,7 @@ def home():
         return jsonify({"status": "online", "message": "Gemini 3 Flash Ready!"})
 
     api_key = os.environ.get("GEMINI_API_KEY", "").strip()
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key={api_key}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview:generateContent?key={api_key}"
 
     try:
         data = request.get_json()
