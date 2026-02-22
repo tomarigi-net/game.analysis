@@ -7,7 +7,7 @@
     <title>心理ゲーム・アナライザー Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        :root { --game-main: #f8fafc; --game-accent: #6366f1; --game-dark: #1e293b; }
+        :root { --game-main: #F0FFF4; --game-accent: #6366f1; --game-dark: #1e293b; }
         body { background-color: var(--game-main); color: var(--game-dark); font-family: sans-serif; }
         .game-card { background: white; border: 1px solid #e2e8f0; border-radius: 1.5rem; }
         .ok-badge { padding: 2px 8px; border-radius: 6px; font-weight: bold; font-size: 0.75rem; min-width: 80px; text-align: center; display: inline-block; }
@@ -23,6 +23,13 @@
         .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
         input:checked + .slider { background-color: #6366f1; }
         input:checked + .slider:before { transform: translateX(24px); }
+
+        /* 分析中アニメーション */
+        .typing-loader { display: flex; justify-content: center; gap: 8px; margin: 20px 0; }
+        .dot { width: 12px; height: 12px; background: #6366f1; border-radius: 50%; animation: wave 1.5s infinite ease-in-out; }
+        .dot:nth-child(2) { animation-delay: 0.2s; }
+        .dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes wave { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
     </style>
 </head>
 <body class="min-h-screen pb-12">
@@ -112,8 +119,12 @@
             </div>
 
             <div id="loading" class="hidden text-center py-16">
-                <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-indigo-500 border-t-transparent"></div>
-                <p class="mt-6 text-indigo-800 font-bold">解析中...</p>
+                <div class="typing-loader">
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                </div>
+                <p class="mt-6 text-indigo-800 font-bold animate-pulse">深層心理をスキャン中...</p>
             </div>
 
             <div id="result-section" class="hidden space-y-6 mt-8 fade-in">
