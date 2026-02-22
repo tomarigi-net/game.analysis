@@ -221,7 +221,9 @@
     </div>
 
     <script>
-        const API_URL = 'https://game-analysis.onrender.com/';
+        // --- 修正箇所：新しいエンドポイントとセキュリティヘッダー ---
+        const API_URL = 'https://game-analysis.onrender.com/analyze_v1_secure';
+        const ACCESS_TOKEN = 'your-secure-handshake-v1'; // backend.pyと一致させる
         const MY_PASSWORD = "okok"; 
 
         function checkPassword() {
@@ -276,9 +278,13 @@
             document.getElementById('loading').classList.remove('hidden');
             
             try {
+                // --- 修正箇所：カスタムヘッダーの追加 ---
                 const response = await fetch(API_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-Custom-Access-Token': ACCESS_TOKEN
+                    },
                     body: JSON.stringify({ 
                         "thought": thought,
                         "mode": document.getElementById('mode-toggle').checked ? "strict" : "flexible"
@@ -313,7 +319,6 @@
                     el.className = 'ok-badge ' + (v.includes('NOT') ? 'badge-not-ok' : v.includes('OK') ? 'badge-ok' : 'badge-none');
                 };
 
-                // --- 心理ゲーム名称の変換辞書（36種類対応） ---
                 const gameNameMap = {
                     "Alcoholic": "アルコール依存症", "Debtor": "借金取り", "Kick Me": "私を蹴って（キック・ミー）",
                     "NIGYSOB": "捕まえたぞ、この野郎（ニグソブ）", "See What You Made Me Do": "ほら、お前のせいでこうなった",
@@ -334,7 +339,6 @@
                 let jpName = getVal(data, ['game_name', '心理ゲーム']);
                 const enName = getVal(data, ['english_name', '英語名']);
 
-                // 辞書に一致するものがあれば置換
                 for (const [enKey, officialName] of Object.entries(gameNameMap)) {
                     if (enName.toLowerCase().includes(enKey.toLowerCase()) || jpName.toLowerCase().includes(enKey.toLowerCase())) {
                         jpName = officialName;
@@ -343,13 +347,11 @@
                 }
 
                 document.getElementById('game-name').innerText = (enName !== "-" && !jpName.includes(enName)) ? `${jpName} (${enName})` : jpName;
-
                 document.getElementById('game-definition').innerText = getVal(data, ['definition', '解説']);
                 document.getElementById('game-scenario').innerText = getVal(data, ['scenario', '要約']);
                 document.getElementById('prediction').innerText = getVal(data, ['prediction', '予測']);
                 document.getElementById('hidden-motive').innerText = getVal(data, ['hidden_motive', '利得']);
                 document.getElementById('advice').innerText = getVal(data, ['advice', '回避策']);
-                
                 document.getElementById('counseling-msg').innerText = getVal(data, ['counseling', 'カウンセリング']);
 
                 const sName = getVal(data, ['subject_name', '自分']);
@@ -371,7 +373,7 @@
 
             } catch (err) {
                 console.error(err);
-                alert("エラーが発生しました。");
+                alert("エラーが発生しました。混雑しているか、セキュリティ制限により遮断された可能性があります。");
                 resetDisplay();
             }
         }
