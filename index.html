@@ -51,7 +51,7 @@
                     <h3 class="text-sm">プライバシーへの配慮</h3>
                 </div>
                 <p class="text-[11px] text-indigo-800 leading-relaxed">
-                    本アプリでは、**氏名・メールアドレス等の個人情報の入力は一切不要**です。必要なのは「やり取りの内容」のみ。入力データも解析終了後に破棄され、サーバーに残ることはありません。
+                    本アプリでは、氏名・メールアドレス等の個人情報の入力は一切不要です。必要なのは「やり取りの内容」のみ。入力データも解析終了後に破棄され、サーバーに残ることはありません。
                 </p>
             </div>
 
@@ -89,7 +89,7 @@
         <div class="max-w-2xl mx-auto px-4 py-10">
             <header class="text-center mb-10">
                 <h1 class="text-3xl font-bold text-indigo-900 leading-tight">心理ゲーム・アナライザー</h1>
-                <p class="text-indigo-600 mt-2 font-medium">「OK <-> not OK」の入れ替わりから、隠されたシナリオを暴く</p>
+                <p class="text-indigo-600 mt-2 font-medium">「OK &lt;-&gt; not OK」の入れ替わりから、隠されたシナリオを暴く</p>
             </header>
 
             <div id="input-section" class="space-y-4">
@@ -159,4 +159,173 @@
                     <p id="prediction" class="text-xl leading-relaxed font-bold">-</p>
                 </div>
 
-                <div class="bg-white border border-slate-200 rounded-
+                <div class="bg-white border border-slate-200 rounded-2xl p-6">
+                    <h3 class="font-bold text-slate-800 mb-2">🔍 ゲームから得られる利得（無意識の真実）</h3>
+                    <p id="hidden-motive" class="text-slate-600 text-base">-</p>
+                </div>
+
+                <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-6">
+                    <h3 class="font-bold text-emerald-800 mb-2">💡 回避策</h3>
+                    <p id="advice" class="text-emerald-900 font-bold text-base">-</p>
+                </div>
+
+                <div class="bg-indigo-50 border border-indigo-100 rounded-2xl p-6 mt-6 shadow-sm">
+                    <h3 class="font-bold text-indigo-800 mb-2 flex items-center">
+                        <span class="mr-2 text-lg">🌱</span>心の処方箋
+                    </h3>
+                    <p id="counseling-msg" class="text-slate-700 text-sm leading-relaxed italic whitespace-pre-wrap">-</p>
+                </div>
+
+                <div class="mt-8 border-t border-slate-200 pt-6">
+                    <button onclick="toggleOriginalText()" class="flex items-center justify-between w-full p-4 bg-slate-100 hover:bg-slate-200 rounded-2xl transition-all">
+                        <span class="text-sm font-bold text-slate-600">📌 入力したやり取りを確認する</span>
+                        <span id="accordion-icon" class="text-slate-400 transition-transform duration-300">▼</span>
+                    </button>
+                    <div id="original-text-container" class="hidden mt-2 p-5 bg-white border border-slate-100 rounded-2xl shadow-inner">
+                        <p id="display-user-thought" class="text-slate-600 text-sm whitespace-pre-wrap leading-relaxed"></p>
+                    </div>
+                </div>
+
+                <button onclick="resetDisplay()" class="w-full py-6 text-slate-400 hover:text-indigo-600 font-bold">入力画面に戻る</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://game-analysis.onrender.com/';
+        const MY_PASSWORD = "izumi"; 
+
+        function checkPassword() {
+            const input = document.getElementById('pass-input').value;
+            const error = document.getElementById('login-error');
+            if (input === MY_PASSWORD) {
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('main-content').classList.remove('hidden');
+                sessionStorage.setItem('isLoggedIn', 'true');
+            } else {
+                error.classList.remove('hidden');
+            }
+        }
+
+        window.onload = () => {
+            if (sessionStorage.getItem('isLoggedIn') === 'true') {
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('main-content').classList.remove('hidden');
+            }
+        };
+
+        function toggleOriginalText() {
+            const container = document.getElementById('original-text-container');
+            const icon = document.getElementById('accordion-icon');
+            const isHidden = container.classList.contains('hidden');
+            if (isHidden) {
+                container.classList.remove('hidden');
+                icon.style.transform = 'rotate(180deg)';
+            } else {
+                container.classList.add('hidden');
+                icon.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        function resetDisplay() {
+            document.getElementById('user-thought').value = "";
+            document.getElementById('result-section').classList.add('hidden');
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('input-section').classList.remove('hidden');
+            document.getElementById('original-text-container').classList.add('hidden');
+            document.getElementById('accordion-icon').style.transform = 'rotate(0deg)';
+            window.scrollTo(0, 0);
+        }
+
+        async function analyzeThought() {
+            const thought = document.getElementById('user-thought').value.trim();
+            if (!thought) return;
+            
+            document.getElementById('display-user-thought').innerText = thought;
+            document.getElementById('input-section').classList.add('hidden');
+            document.getElementById('loading').classList.remove('hidden');
+            
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        "thought": thought,
+                        "mode": document.getElementById('mode-toggle').checked ? "strict" : "flexible"
+                    })
+                });
+                
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+                let data = await response.json();
+                
+                if (data.error) {
+                    alert(`【分析中断】\n${data.error}\n詳細: ${data.detail || "なし"}`);
+                    resetDisplay();
+                    return;
+                }
+
+                if (typeof data === 'string') data = JSON.parse(data);
+
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('result-section').classList.remove('hidden');
+                
+                const getVal = (obj, keys) => {
+                    if (!obj) return "-";
+                    for (let key of keys) {
+                        let target = obj[key];
+                        if (target !== undefined && target !== null && target !== "") {
+                            if (typeof target === 'object' && !Array.isArray(target)) {
+                                return target.message || target.text || target.content || JSON.stringify(target);
+                            }
+                            return target;
+                        }
+                    }
+                    return "-";
+                };
+
+                const setB = (id, val) => {
+                    const el = document.getElementById(id);
+                    if (!el) return;
+                    const v = String(val || "-").toUpperCase();
+                    el.innerText = v;
+                    el.className = 'ok-badge ' + (v.includes('NOT') ? 'badge-not-ok' : v.includes('OK') ? 'badge-ok' : 'badge-none');
+                };
+
+                const jpName = getVal(data, ['game_name', '心理ゲーム']);
+                const enName = getVal(data, ['english_name', '英語名']);
+                document.getElementById('game-name').innerText = (enName !== "-" && !jpName.includes(enName)) ? `${jpName} (${enName})` : jpName;
+
+                document.getElementById('game-definition').innerText = getVal(data, ['definition', '解説']);
+                document.getElementById('game-scenario').innerText = getVal(data, ['scenario', '要約']);
+                document.getElementById('prediction').innerText = getVal(data, ['prediction', '予測']);
+                document.getElementById('hidden-motive').innerText = getVal(data, ['hidden_motive', '利得']);
+                document.getElementById('advice').innerText = getVal(data, ['advice', '回避策']);
+                document.getElementById('counseling-msg').innerText = getVal(data, ['counseling', 'カウンセリング']);
+
+                const sName = getVal(data, ['subject_name', '自分']);
+                if (sName !== "-") {
+                    document.getElementById('label-start').innerHTML = `▶ 開始時 (${sName}視点)`;
+                    document.getElementById('label-end').innerHTML = `▼ 結末 (${sName}視点)`;
+                }
+
+                const s = data.position_start || data.start_position || {};
+                const e = data.position_end || data.end_position || {};
+                
+                setB('pos-start-self', getVal(s, ['self', '自分']));
+                setB('pos-start-others', getVal(s, ['others', '相手']));
+                document.getElementById('pos-start-desc').innerText = getVal(s, ['description', '解説']);
+                
+                setB('pos-end-self', getVal(e, ['self', '自分']));
+                setB('pos-end-others', getVal(e, ['others', '相手']));
+                document.getElementById('pos-end-desc').innerText = getVal(e, ['description', '解説']);
+
+            } catch (err) {
+                console.error(err);
+                alert("通信エラーが発生しました。");
+                resetDisplay();
+            }
+        }
+    </script>
+</body>
+</html>
