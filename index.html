@@ -72,11 +72,38 @@
                 <div class="flex items-center text-[10px] text-slate-600"><span class="text-indigo-400 mr-1 text-xs">✔</span>心の処方箋</div>
             </div>
 
-            <div class="mb-10 text-center">
+            <div class="mb-6 text-center">
                 <h2 class="text-xs font-bold text-slate-500 mb-3 uppercase tracking-widest">Private Access</h2>
                 <input type="password" id="pass-input" class="w-full p-4 border rounded-2xl mb-4 text-center outline-none focus:ring-2 focus:ring-indigo-400 bg-slate-50 text-lg" placeholder="パスワードを入力">
                 <button onclick="checkPassword()" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl hover:bg-indigo-700 transition shadow-lg active:scale-95 text-lg">分析を開始する</button>
                 <p id="login-error" class="text-rose-500 text-sm mt-4 hidden font-bold">パスワードが正しくありません</p>
+            </div>
+
+            <div class="mb-10 border-t border-slate-100 pt-4">
+                <button onclick="toggleManual()" class="flex items-center justify-between w-full p-3 bg-indigo-50 hover:bg-indigo-100 rounded-xl transition-all">
+                    <span class="text-xs font-bold text-indigo-700">📘 使用マニュアルを表示</span>
+                    <span id="manual-icon" class="text-indigo-400 transition-transform duration-300 text-xs">▼</span>
+                </button>
+                <div id="manual-content" class="hidden mt-3 p-4 bg-white border border-indigo-50 rounded-xl text-[11px] text-slate-600 leading-relaxed shadow-inner">
+                    <p class="mb-2 font-bold text-indigo-900">■ アプリの概要</p>
+                    <ul class="list-disc ml-4 space-y-1 mb-3">
+                        <li>Eric Berne氏の“交流分析”に基づき、AIが対人関係の心理パターンを自動分析します。</li>
+                    </ul>
+                    <p class="mb-2 font-bold text-indigo-900">■ 使い方</p>
+                    <ul class="list-disc ml-4 space-y-1 mb-3">
+                        <li><strong>ログイン</strong>: パスワードを入力して分析画面へ。</li>
+                        <li><strong>モード選択</strong>: 原典36種から特定するなら「ON」、幅広く捉えるなら「OFF」。</li>
+                        <li><strong>内容入力</strong>: 表面的な会話と心の違和感を具体的（100〜300字）に入力。</li>
+                        <li><strong>分析実行</strong>: ボタン押下後、約30秒でスキャン完了。</li>
+                        <li><strong>結果活用</strong>: 読み上げやPDF保存での振り返り。</li>
+                    </ul>
+                    <p class="mb-2 font-bold text-rose-700">■ ⚠️ 注意事項</p>
+                    <ul class="list-disc ml-4 space-y-1">
+                        <li><strong>プライバシー</strong>: 氏名等の入力は不要。データは一時利用のみ。</li>
+                        <li><strong>エラー</strong>: 混雑時（503/429等）は数分置いて再試行。</li>
+                        <li><strong>免責</strong>: 本ツールは気づきのためのもので、医学的診断ではありません。</li>
+                    </ul>
+                </div>
             </div>
 
             <div class="pt-6 border-t border-slate-100 text-[10px] text-slate-400 leading-relaxed space-y-4 text-left">
@@ -233,6 +260,19 @@
                 document.getElementById('main-content').classList.remove('hidden');
             }
         };
+
+        function toggleManual() {
+            const content = document.getElementById('manual-content');
+            const icon = document.getElementById('manual-icon');
+            const isHidden = content.classList.contains('hidden');
+            if (isHidden) {
+                content.classList.remove('hidden');
+                icon.style.transform = 'rotate(180deg)';
+            } else {
+                content.classList.add('hidden');
+                icon.style.transform = 'rotate(0deg)';
+            }
+        }
 
         function toggleOriginalText() {
             const container = document.getElementById('original-text-container');
