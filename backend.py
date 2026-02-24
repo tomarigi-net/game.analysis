@@ -8,6 +8,12 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "https://tomarigi-net.github.io"}})
 
+# --- 修正箇所：ウォームアップ用エンドポイント ---
+@app.route('/warmup', methods=['GET'])
+def warmup():
+    """UptimeRobotなどの監視用。APIの疎通を確認し、スリープを防ぐ"""
+    return jsonify({"status": "warmed_up", "message": "Backend and API path are active."})
+
 @app.route('/', methods=['GET', 'POST', 'OPTIONS'], strict_slashes=False)
 def home():
     if request.method == 'OPTIONS':
@@ -42,6 +48,7 @@ def home():
             }
         }
 
+        # タイムアウトを120秒に設定（gunicornのタイムアウト設定と同期）
         response = requests.post(url, json=payload, timeout=60)
         
         if response.status_code != 200:
