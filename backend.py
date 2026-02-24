@@ -30,7 +30,7 @@ def home():
         with open("prompt.txt", "r", encoding="utf-8") as f:
             base_prompt = f.read()
         
-        mode_instruction = "\n【追加制約】ゲーム名称は必ずエリック・バーンの原典"Games People Play"にある公式名称36種類の中から選択してください。" if mode == "strict" else "\n【追加制約】原典に縛られず現代的な名称を自由に命名してください。"
+        mode_instruction = "\n【追加制約】ゲーム名称は必ずエリック・バーンの原典'Games People Play'にある公式名称36種類の中から選択してください。" if mode == "strict" else "\n【追加制約】原典に縛られず現代的な名称を自由に命名してください。"
         
         prompt = f"{base_prompt}\n{mode_instruction}\n\n【分析対象】: {thought}"
 
