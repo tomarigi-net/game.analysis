@@ -75,7 +75,7 @@
             <div class="mb-6 text-center">
                 <h2 class="text-xs font-bold text-slate-500 mb-3 uppercase tracking-widest">Private Access</h2>
                 <input type="password" id="pass-input" class="w-full p-4 border rounded-2xl mb-4 text-center outline-none focus:ring-2 focus:ring-indigo-400 bg-slate-50 text-lg" placeholder="パスワードを入力">
-                <button onclick="checkPassword()" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl hover:bg-indigo-700 transition shadow-lg active:scale-95 text-lg">分析を開始する</button>
+                <button onclick="checkPassword()" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl hover:bg-indigo-700 transition shadow-lg active:scale-95 text-lg">アナライザーを起動する</button>
                 <p id="login-error" class="text-rose-500 text-sm mt-4 hidden font-bold">パスワードが正しくありません</p>
             </div>
 
@@ -256,4 +256,12 @@
 
         window.onload = () => {
             if (sessionStorage.getItem('isLoggedIn') === 'true') {
-                document
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('main-content').classList.remove('hidden');
+            }
+        };
+
+        // 他に必要な関数（analyzeThought, resetDisplay等）がある場合はここに追加してください
+    </script>
+</body>
+</html>
