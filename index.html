@@ -297,15 +297,6 @@
             window.scrollTo(0, 0);
         }
 
-        // バッジの色判定ロジック：AIが出力した文字列に "not ok" が含まれるかで判定
-        function getBadgeClass(val) {
-            if (!val) return "badge-none";
-            const v = String(val).toLowerCase();
-            if (v.includes("not ok")) return "badge-not-ok";
-            if (v.includes("ok")) return "badge-ok";
-            return "badge-none";
-        }
-
         async function analyzeThought() {
             const thought = document.getElementById('user-thought').value.trim();
             if (!thought) return;
@@ -344,6 +335,14 @@
                     return "-";
                 };
 
+                const setB = (id, val) => {
+                    const el = document.getElementById(id);
+                    if (!el) return;
+                    const v = String(val || "-").toUpperCase();
+                    el.innerText = v;
+                    el.className = 'ok-badge ' + (v.includes('NOT') ? 'badge-not-ok' : v.includes('OK') ? 'badge-ok' : 'badge-none');
+                };
+
                 const gameNameMap = {
                     "Alcoholic": "アルコール中毒者", "Debtor": "負債者", "Kick Me": "私を蹴ってください（キック・ミー）",
                     "Now I've Got You, You Son of a Bitch": "さあ、捕まえたぞ、この野郎", "See What You Made Me Do": "あなたが私にさせたことといったら",
@@ -376,36 +375,23 @@
                 document.getElementById('prediction').innerText = getVal(data, ['prediction', '予測']);
                 document.getElementById('hidden-motive').innerText = getVal(data, ['hidden_motive', '利得']);
                 document.getElementById('advice').innerText = getVal(data, ['advice', '回避策']);
-                document.getElementById('counseling-msg').innerText = getVal(data, ['counseling_msg', 'counseling', 'カウンセリング']);
+                document.getElementById('counseling-msg').innerText = getVal(data, ['counseling', 'カウンセリング']);
 
                 const sName = getVal(data, ['subject_name', '自分']);
-                document.getElementById('label-start').innerHTML = `▶ 開始時 (対${sName})`;
-                document.getElementById('label-end').innerHTML = `▼ 結末 (対${sName})`;
+                if (sName !== "-") {
+                    document.getElementById('label-start').innerHTML = `▶ 開始時 (${sName}視点)`;
+                    document.getElementById('label-end').innerHTML = `▼ 結末 (${sName}視点)`;
+                }
 
                 const s = data.position_start || data.start_position || {};
                 const e = data.position_end || data.end_position || {};
                 
-                // AIが出力した主語(I'm/You're)付きの文字列をそのまま表示に反映
-                const sSelf = getVal(s, ['self', '自分']);
-                const sOthers = getVal(s, ['others', '相手']);
-                const eSelf = getVal(e, ['self', '自分']);
-                const eOthers = getVal(e, ['others', '相手']);
-
-                const posStartSelf = document.getElementById('pos-start-self');
-                const posStartOthers = document.getElementById('pos-start-others');
-                const posEndSelf = document.getElementById('pos-end-self');
-                const posEndOthers = document.getElementById('pos-end-others');
-
-                posStartSelf.innerText = sSelf;
-                posStartSelf.className = `ok-badge ${getBadgeClass(sSelf)}`;
-                posStartOthers.innerText = sOthers;
-                posStartOthers.className = `ok-badge ${getBadgeClass(sOthers)}`;
+                setB('pos-start-self', getVal(s, ['self', '自分']));
+                setB('pos-start-others', getVal(s, ['others', '相手']));
                 document.getElementById('pos-start-desc').innerText = getVal(s, ['description', '解説']);
                 
-                posEndSelf.innerText = eSelf;
-                posEndSelf.className = `ok-badge ${getBadgeClass(eSelf)}`;
-                posEndOthers.innerText = eOthers;
-                posEndOthers.className = `ok-badge ${getBadgeClass(eOthers)}`;
+                setB('pos-end-self', getVal(e, ['self', '自分']));
+                setB('pos-end-others', getVal(e, ['others', '相手']));
                 document.getElementById('pos-end-desc').innerText = getVal(e, ['description', '解説']);
 
             } catch (err) {
