@@ -43,10 +43,10 @@ def home():
         }
 
         response = requests.post(url, json=payload, timeout=60)
-        
-        if response.status_code != 200:
-            return jsonify({"error": "API Error", "detail": response.text}), 200
-
+        # backend.py の該当箇所
+if response.status_code != 200:
+    # 429ならそのまま429をフロントに返す
+    return jsonify(response.json()), response.status_code
         result = response.json()
         
         if 'candidates' in result and result['candidates']:
