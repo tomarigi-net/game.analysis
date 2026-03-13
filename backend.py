@@ -45,7 +45,8 @@ def home():
         response = requests.post(url, json=payload, timeout=60)
         
         if response.status_code != 200:
-            return jsonify(response.json() if response.content else {"error": "API Error"}), response.status_code
+            return jsonify({"error": "API Error", "detail": response.text}), 200
+
         result = response.json()
         
         if 'candidates' in result and result['candidates']:

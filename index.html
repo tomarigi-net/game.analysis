@@ -242,43 +242,22 @@
         const API_URL = 'https://game-analysis.onrender.com';
         const MY_PASSWORD = "okok";
 
-        // ... (checkPassword, toggleManual などの関数は変更なし)
+        function checkPassword() {
+            const input = document.getElementById('pass-input').value;
+            const error = document.getElementById('login-error');
+            if (input === MY_PASSWORD) {
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('main-content').classList.remove('hidden');
+                sessionStorage.setItem('isLoggedIn', 'true');
+            } else {
+                error.classList.remove('hidden');
+            }
+        }
 
-        async function analyzeThought() {
-            const thought = document.getElementById('user-thought').value.trim();
-            if (!thought) return;
-            
-            document.getElementById('display-user-thought').innerText = thought;
-            document.getElementById('input-section').classList.add('hidden');
-            document.getElementById('loading').classList.remove('hidden');
-            
-            try {
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        "thought": thought,
-                        "mode": document.getElementById('mode-toggle').checked ? "strict" : "flexible"
-                    })
-                });
-                
-                // --- 修正箇所：429エラーおよびその他のHTTPエラーのハンドリング ---
-                if (response.status === 429) {
-                    alert("【混雑エラー (429)】\n現在リクエストが集中しています。Gemini APIの制限に達したため、1〜2分待ってから再度お試しください。");
-                    resetDisplay();
-                    return;
-                }
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                // ---------------------------------------------------------
-
-                let data = await response.json();
-                if (typeof data === 'string') data = JSON.parse(data);
-
-                document.getElementById('loading').classList.add('hidden');
-                document.getElementById('result-section').classList.remove('hidden');
+        window.onload = () => {
+            if (sessionStorage.getItem('isLoggedIn') === 'true') {
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('main-content').classList.remove('hidden');
             }
         };
 
