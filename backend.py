@@ -43,10 +43,15 @@ def home():
         }
 
         response = requests.post(url, json=payload, timeout=60)
-        # backend.py の該当箇所
-if response.status_code != 200:
-    # 429ならそのまま429をフロントに返す
-    return jsonify(response.json()), response.status_code
+        
+        # --- ここから修正：429エラー(Rate Limit)のハンドリングを追加 ---
+        if response.status_code == 429:
+            return jsonify({"error": "Rate Limit", "detail": "リクエスト制限中です。しばらくお待ちください。"}), 429
+
+        if response.status_code != 200:
+            return jsonify({"error": "API Error", "detail": response.text}), 200
+        # --- ここまで修正 ---
+
         result = response.json()
         
         if 'candidates' in result and result['candidates']:

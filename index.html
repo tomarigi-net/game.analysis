@@ -314,17 +314,7 @@
                         "mode": document.getElementById('mode-toggle').checked ? "strict" : "flexible"
                     })
                 });
-                                // --- 429エラーのハンドリングを追加 ---
-                if (response.status === 429) {
-                    alert("【混雑エラー (429)】\n現在リクエストが集中しています。Gemini APIの無料枠制限に達したため、1〜2分待ってから再度お試しください。");
-                    resetDisplay();
-                    return;
-                }
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                // ------------------------------------
+                
                 let data = await response.json();
                 if (typeof data === 'string') data = JSON.parse(data);
 
@@ -406,7 +396,8 @@
 
             } catch (err) {
                 console.error(err);
-                alert("エラーが発生しました。");
+                // 429エラーや503エラーなどの混雑を考慮したメッセージに変更
+                alert("現在アクセスが集中しているか、リクエスト制限がかかっています。3分ほど時間を置いてから再度お試しください。");
                 resetDisplay();
             }
         }
