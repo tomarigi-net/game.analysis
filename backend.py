@@ -13,7 +13,7 @@ def home():
     if request.method == 'OPTIONS':
         return '', 200
     if request.method == 'GET':
-        return jsonify({"status": "online", "message": "Gemini 2.5 Flash Ready!"})
+        return jsonify({"status": "online", "message": "Gemini 3 Flash Ready!"})
 
     api_key = os.environ.get("GEMINI_API_KEY", "").strip()
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
@@ -26,6 +26,7 @@ def home():
         if not thought:
             return jsonify({"error": "Empty input"}), 200
 
+        # prompt.txt の読み込み
         with open("prompt.txt", "r", encoding="utf-8") as f:
             base_prompt = f.read()
         
@@ -45,7 +46,6 @@ def home():
         
         if response.status_code != 200:
             return jsonify(response.json() if response.content else {"error": "API Error"}), response.status_code
-
         result = response.json()
         
         if 'candidates' in result and result['candidates']:
@@ -67,6 +67,7 @@ def home():
     except Exception as e:
         return jsonify({"error": "System error", "detail": str(e)}), 200
 
+# --- ここが重要：Renderのポート開放設定 ---
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
