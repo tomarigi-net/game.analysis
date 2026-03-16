@@ -7,6 +7,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 
 app = Flask(__name__)
+# GitHub Pagesからアクセス可能に設定
 CORS(app, resources={r"/*": {"origins": "https://tomarigi-net.github.io"}})
 
 # --- Gemini呼び出し関数（429リトライ対応） ---
@@ -63,7 +64,11 @@ def home():
     except Exception as e:
         return jsonify({"error": "System error", "detail": f"prompt.txt読み込み失敗: {str(e)}"}), 500
 
-    mode_instruction = "\n【追加制約】ゲーム名称は必ずエリック・バーンの原典'Games People Play'にある公式名称36種類の中から選択してください。" if mode == "strict" else "\n【追加制約】原典に縛られず現代的な名称を自由に命名してください。"
+    mode_instruction = (
+        "\n【追加制約】ゲーム名称は必ずエリック・バーンの原典'Games People Play'にある公式名称36種類の中から選択してください。"
+        if mode == "strict"
+        else "\n【追加制約】原典に縛られず現代的な名称を自由に命名してください。"
+    )
     
     prompt = f"{base_prompt}\n{mode_instruction}\n\n【分析対象】: {thought}"
 
@@ -86,7 +91,7 @@ def home():
     else:
         return jsonify(result)
 
-# --- Renderポート設定 ---
+# --- ローカル開発用 Flask run ---
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
