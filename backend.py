@@ -57,10 +57,14 @@ def home():
         if 'candidates' in result and result['candidates']:
             ai_text = result['candidates'][0]['content']['parts'][0]['text'].strip()
             clean_text = re.sub(r'```json\s*|```', '', ai_text)
-            start_idx = clean_text.find('{')
-            end_idx = clean_text.rfind('}')
+            
+            # --- ここから修正：配列 [ ] と オブジェクト { } の両方に対応する抽出ロジック ---
+            start_idx = min([i for i in [clean_text.find('{'), clean_text.find('[')] if i != -1] or [0])
+            end_idx = max([i for i in [clean_text.rfind('}'), clean_text.rfind(']')] if i != -1] or [len(clean_text)])
+            
             if start_idx != -1 and end_idx != -1:
                 clean_text = clean_text[start_idx:end_idx+1]
+            # --- ここまで修正 ---
             
             try:
                 parsed_json = json.loads(clean_text)
