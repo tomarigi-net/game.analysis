@@ -32,7 +32,8 @@ def home():
         
         mode_instruction = "\n【追加制約】ゲーム名称は必ずエリック・バーンの原典'Games People Play'にある公式名称36種類の中から選択してください。" if mode == "strict" else "\n【追加制約】原典に縛られず現代的な名称を自由に命名してください。"
         
-        prompt = f"{base_prompt}\n{mode_instruction}\n\n【分析対象】: {thought}"
+        # AIに対して配列形式での回答を促す指示を追加
+        prompt = f"{base_prompt}\n{mode_instruction}\n\n【分析対象】: {thought}\n\n※必ず2つの解釈を含むJSON配列形式 [{{...}}, {{...}}] で出力してください。"
 
         payload = {
             "contents": [{"parts": [{"text": prompt}]}],
@@ -68,6 +69,12 @@ def home():
             
             try:
                 parsed_json = json.loads(clean_text)
+                
+                # --- 追加修正：常に配列形式でフロントに返すロジック ---
+                if isinstance(parsed_json, dict):
+                    parsed_json = [parsed_json]
+                # --------------------------------------------------
+                
                 return jsonify(parsed_json)
             except json.JSONDecodeError:
                 return jsonify({"error": "Parse Error", "raw": clean_text})
