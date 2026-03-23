@@ -77,8 +77,8 @@ def home():
                 # --- 追加修正：キー名の揺れを補正して「可能性」「根拠」を確実に渡す ---
                 normalized_data = []
                 for item in parsed_json:
-                    # AIが返してくる可能性のある日本語キー等を、フロントが期待する英語キーに紐付け
-                    item["probability"] = item.get("probability") or item.get("可能性") or item.get("確率") or "-"
+                    # AIが返した可能性のある日本語キーを、フロントエンド(index.html)が要求する英語キーへ統合
+                    item["probability"] = item.get("probability") or item.get("可能性") or item.get("確信度") or "-"
                     item["reason"] = item.get("reason") or item.get("分析の根拠") or item.get("根拠") or "-"
                     normalized_data.append(item)
                 
