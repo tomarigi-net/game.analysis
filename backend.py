@@ -45,12 +45,13 @@ def home():
 
         response = requests.post(url, json=payload, timeout=60)
         
-        # --- 429エラー(Rate Limit)のハンドリングを追加 ---
+        # --- ここから修正：429エラー(Rate Limit)のハンドリングを追加 ---
         if response.status_code == 429:
             return jsonify({"error": "Rate Limit", "detail": "リクエスト制限中です。しばらくお待ちください。"}), 429
 
         if response.status_code != 200:
             return jsonify({"error": "API Error", "detail": response.text}), 200
+        # --- ここまで修正 ---
 
         result = response.json()
         
@@ -58,31 +59,33 @@ def home():
             ai_text = result['candidates'][0]['content']['parts'][0]['text'].strip()
             clean_text = re.sub(r'```json\s*|```', '', ai_text)
             
-            # 配列 [ ] と オブジェクト { } の両方に対応する抽出ロジック
+            # --- ここから修正：配列 [ ] と オブジェクト { } の両方に対応する抽出ロジック ---
             start_idx = min([i for i in [clean_text.find('{'), clean_text.find('[')] if i != -1] or [0])
             end_idx = max([i for i in [clean_text.rfind('}'), clean_text.rfind(']')] if i != -1] or [len(clean_text)])
             
             if start_idx != -1 and end_idx != -1:
                 clean_text = clean_text[start_idx:end_idx+1]
+            # --- ここまで修正 ---
             
             try:
                 parsed_json = json.loads(clean_text)
                 
-                # 常に配列形式でフロントに返す
+                # --- 追加修正：常に配列形式でフロントに返すロジック ---
                 if isinstance(parsed_json, dict):
                     parsed_json = [parsed_json]
                 
-                # --- キー名の補正：フロントエンドが期待する probability と reason を確実に作成 ---
+                # --- 追加修正：フロントエンドのキー名（probability, reason）へのマッピング ---
                 normalized_data = []
                 for item in parsed_json:
-                    # AIが日本語で返してきた場合でも、index.htmlが期待する英語キーに値をコピー
+                    # AIが「可能性」「根拠」などの日本語キーで返した場合でもフロントで表示可能にする
                     if "probability" not in item:
                         item["probability"] = item.get("可能性") or item.get("確率") or "-"
                     if "reason" not in item:
-                        item["reason"] = item.get("根拠") or item.get("理由") or "-"
+                        item["reason"] = item.get("分析の根拠") or item.get("根拠") or item.get("理由") or "-"
                     normalized_data.append(item)
                 
                 return jsonify(normalized_data)
+                # --------------------------------------------------
                 
             except json.JSONDecodeError:
                 return jsonify({"error": "Parse Error", "raw": clean_text})
@@ -92,7 +95,7 @@ def home():
     except Exception as e:
         return jsonify({"error": "System error", "detail": str(e)}), 200
 
-# Renderのポート開放設定
+# --- Renderのポート開放設定 ---
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
