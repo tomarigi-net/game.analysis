@@ -74,10 +74,10 @@ def home():
                 if isinstance(parsed_json, dict):
                     parsed_json = [parsed_json]
                 
-                # --- キーの補正ロジック：フロントエンドが期待する probability と reason を確実に作成 ---
+                # --- 追加修正：キー名の揺れを補正して「可能性」「根拠」を確実に渡す ---
                 normalized_data = []
                 for item in parsed_json:
-                    # AIが日本語キーで返しても、フロントエンドが動くようにマッピング
+                    # AIが返してくる可能性のある日本語キー等を、フロントが期待する英語キーに紐付け
                     item["probability"] = item.get("probability") or item.get("可能性") or item.get("確率") or "-"
                     item["reason"] = item.get("reason") or item.get("分析の根拠") or item.get("根拠") or "-"
                     normalized_data.append(item)
