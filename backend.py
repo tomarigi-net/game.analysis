@@ -77,17 +77,12 @@ def home():
                 # --- 追加修正：キー名の揺れを補正して「可能性」「根拠」を確実に渡す ---
                 normalized_data = []
                 for item in parsed_json:
-                    # キーを総当たりでチェックし、似た意味の項目があれば採用する
-                    g_val = item.get("game") or item.get("名称") or item.get("心理ゲーム") or next((v for k, v in item.items() if "名" in k or "game" in k.lower()), "不明")
-                    p_val = item.get("probability") or item.get("可能性") or item.get("確率") or next((v for k, v in item.items() if "確" in k or "可" in k or "prob" in k.lower()), "-")
-                    s_val = item.get("summary") or item.get("概要") or item.get("説明") or next((v for k, v in item.items() if "概" in k or "説" in k or "sum" in k.lower()), "")
-                    r_val = item.get("reason") or item.get("分析の根拠") or item.get("根拠") or next((v for k, v in item.items() if "根" in k or "理" in k or "reas" in k.lower()), "-")
-
+                    # AIが返してくる可能性のある日本語キー等を、フロントが期待する英語キーに紐付け
                     normalized_data.append({
-                        "game": g_val,
-                        "probability": p_val,
-                        "summary": s_val,
-                        "reason": r_val
+                        "game": item.get("game") or item.get("名称") or item.get("心理ゲーム") or next((v for k, v in item.items() if "名" in k or "game" in k.lower()), "不明"),
+                        "probability": item.get("probability") or item.get("可能性") or item.get("確率") or next((v for k, v in item.items() if "確" in k or "可" in k or "prob" in k.lower()), "-"),
+                        "summary": item.get("summary") or item.get("概要") or item.get("説明") or next((v for k, v in item.items() if "概" in k or "説" in k or "sum" in k.lower()), ""),
+                        "reason": item.get("reason") or item.get("分析の根拠") or item.get("根拠") or next((v for k, v in item.items() if "根" in k or "理" in k or "reas" in k.lower()), "-")
                     })
                 
                 return jsonify(normalized_data)
