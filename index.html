@@ -458,8 +458,11 @@
             
             const startSelf = document.getElementById('pos-start-self').innerText;
             const startOthers = document.getElementById('pos-start-others').innerText;
+            const startDesc = document.getElementById('pos-start-desc').innerText;
+
             const endSelf = document.getElementById('pos-end-self').innerText;
             const endOthers = document.getElementById('pos-end-others').innerText;
+            const endDesc = document.getElementById('pos-end-desc').innerText;
             
             const prediction = document.getElementById('prediction').innerText;
             const motive = document.getElementById('hidden-motive').innerText;
@@ -473,7 +476,10 @@
                 やり取りの要約。${scenario}。
                 
                 開始時の立ち位置。自分は${startSelf}、相手は${startOthers}。
+                開始時の状態。${startDesc}。
+
                 結末の立ち位置。自分は${endSelf}、相手は${endOthers}。
+                結末の状態。${endDesc}。
                 
                 予測される破綻した結末。${prediction}。
                 無意識の利得。${motive}。
