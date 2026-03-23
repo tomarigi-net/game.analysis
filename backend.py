@@ -74,16 +74,13 @@ def home():
                 if isinstance(parsed_json, dict):
                     parsed_json = [parsed_json]
                 
-                # --- 追加修正：キー名の揺れを補正して「可能性」「根拠」を確実に渡す ---
+                # --- キーの補正ロジック：フロントエンドが期待する probability と reason を確実に作成 ---
                 normalized_data = []
                 for item in parsed_json:
-                    # AIが返してくる可能性のある日本語キー等を、フロントが期待する英語キーに紐付け
-                    normalized_data.append({
-                        "game": item.get("game") or item.get("名称") or item.get("心理ゲーム") or next((v for k, v in item.items() if "名" in k or "game" in k.lower()), "不明"),
-                        "probability": item.get("probability") or item.get("可能性") or item.get("確率") or next((v for k, v in item.items() if "確" in k or "可" in k or "prob" in k.lower()), "-"),
-                        "summary": item.get("summary") or item.get("概要") or item.get("説明") or next((v for k, v in item.items() if "概" in k or "説" in k or "sum" in k.lower()), ""),
-                        "reason": item.get("reason") or item.get("分析の根拠") or item.get("根拠") or next((v for k, v in item.items() if "根" in k or "理" in k or "reas" in k.lower()), "-")
-                    })
+                    # AIが日本語キーで返しても、フロントエンドが動くようにマッピング
+                    item["probability"] = item.get("probability") or item.get("可能性") or item.get("確率") or "-"
+                    item["reason"] = item.get("reason") or item.get("分析の根拠") or item.get("根拠") or "-"
+                    normalized_data.append(item)
                 
                 return jsonify(normalized_data)
                 # --------------------------------------------------
@@ -96,7 +93,7 @@ def home():
     except Exception as e:
         return jsonify({"error": "System error", "detail": str(e)}), 200
 
-# --- ここが重要：Renderのポート開放設定 ---
+# --- Renderのポート開放設定 ---
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
