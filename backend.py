@@ -73,9 +73,20 @@ def home():
                 # --- 追加修正：常に配列形式でフロントに返すロジック ---
                 if isinstance(parsed_json, dict):
                     parsed_json = [parsed_json]
+                
+                # --- 追加修正：キー名の揺れを補正して「可能性」「根拠」を確実に渡す ---
+                normalized_data = []
+                for item in parsed_json:
+                    normalized_data.append({
+                        "game": item.get("game") or item.get("名称") or "不明",
+                        "probability": item.get("probability") or item.get("可能性") or item.get("確率") or "-",
+                        "summary": item.get("summary") or item.get("概要") or "",
+                        "reason": item.get("reason") or item.get("分析の根拠") or item.get("根拠") or "-"
+                    })
+                
+                return jsonify(normalized_data)
                 # --------------------------------------------------
                 
-                return jsonify(parsed_json)
             except json.JSONDecodeError:
                 return jsonify({"error": "Parse Error", "raw": clean_text})
         else:
