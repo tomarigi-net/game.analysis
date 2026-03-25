@@ -167,15 +167,15 @@
 
             <div id="result-section" class="hidden space-y-6 mt-8 fade-in">
                 <div id="result-tabs" class="flex gap-2 mb-4">
-                    <button onclick="switchResult(0)" id="tab-0" style="flex: 3;" class="py-2 px-4 rounded-xl font-bold text-xs transition-all bg-indigo-600 text-white shadow-md">メイン分析</button>
-                    <button onclick="switchResult(1)" id="tab-1" style="flex: 2;" class="py-2 px-4 rounded-xl font-bold text-xs transition-all bg-slate-200 text-slate-500">次点の解釈</button>
+                    <button onclick="switchResult(0)" id="tab-0" style="flex: 3;" class="py-2 px-4 rounded-xl font-bold text-xs transition-all bg-indigo-600 text-white shadow-md">メイン推測</button>
+                    <button onclick="switchResult(1)" id="tab-1" style="flex: 2;" class="py-2 px-4 rounded-xl font-bold text-xs transition-all bg-slate-200 text-slate-500">次点の推測</button>
                 </div>
 
                 <div class="game-card p-6 shadow-md border-l-8 border-indigo-600">
                     <div class="flex justify-between items-start mb-1">
                         <div class="flex flex-col gap-1">
                             <h3 class="text-xs font-bold text-indigo-400 uppercase tracking-widest">特定された心理ゲーム</h3>
-                            <div id="prob-badge" class="inline-block bg-indigo-100 text-indigo-700 text-[10px] font-bold px-2 py-0.5 rounded-full w-fit">合致度: -%</div>
+                            <div id="prob-badge" class="inline-block bg-indigo-100 text-indigo-700 text-[10px] font-bold px-2 py-0.5 rounded-full w-fit">推測確率: -%</div>
                         </div>
                         <button onclick="speakResult()" id="read-aloud-btn" class="speak-btn" title="結果を読み上げる">
                             <span id="speaker-icon">🔊</span>
@@ -189,7 +189,7 @@
                         <button onclick="toggleProbReason()" class="flex items-center justify-between w-full p-3 bg-slate-50 hover:bg-slate-100 rounded-xl border border-slate-200 transition-all">
                             <div class="flex flex-col text-left">
                                 <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">分析の根拠</span>
-                                <span class="text-[10px] text-slate-400">なぜこのゲームだと判定されたのかを確認する</span>
+                                <span class="text-[10px] text-slate-400">なぜこの可能性が高いと判定されたのかを確認する</span>
                             </div>
                             <span id="prob-reason-icon" class="text-slate-400 transition-transform duration-300 text-xs">▼</span>
                         </button>
@@ -342,12 +342,20 @@
             document.getElementById('input-section').classList.add('hidden');
             document.getElementById('loading').classList.remove('hidden');
             
+            const customPrompt = `
+                以下のエピソードを心理ゲームとして分析し、JSON配列で2つの候補を返してください。
+                【重要：確率の算出ルール】
+                1. 各候補の「可能性（probability）」の合計が必ず100（%）になるように相対評価で算出してください。
+                2. 第一候補が明らかに優勢な場合は「80と20」、拮抗している場合は「55と45」のように配分してください。
+                3. 単なる「合致度」ではなく、「全体を100とした場合の推測確率」として出力してください。
+            `;
+
             try {
                 const response = await fetch(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        "thought": thought,
+                        "thought": thought + "\n\n" + customPrompt,
                         "mode": document.getElementById('mode-toggle').checked ? "strict" : "flexible"
                     })
                 });
@@ -356,6 +364,18 @@
                 if (typeof data === 'string') data = JSON.parse(data);
 
                 analysisResults = Array.isArray(data) ? data : [data];
+
+                if (analysisResults.length >= 2) {
+                    const p1 = parseFloat(analysisResults[0].probability || 0);
+                    const p2 = parseFloat(analysisResults[1].probability || 0);
+                    const total = p1 + p2;
+                    if (total > 0) {
+                        analysisResults[0].displayProb = Math.round((p1 / total) * 100);
+                        analysisResults[1].displayProb = 100 - analysisResults[0].displayProb;
+                    }
+                } else if (analysisResults.length === 1) {
+                    analysisResults[0].displayProb = 100;
+                }
 
                 document.getElementById('loading').classList.add('hidden');
                 document.getElementById('result-section').classList.remove('hidden');
@@ -435,7 +455,8 @@
                 }
             }
 
-            document.getElementById('prob-badge').innerText = `合致度: ${getVal(data, ['probability', '可能性'])}%`;
+            const displayProb = data.displayProb !== undefined ? data.displayProb : getVal(data, ['probability', '可能性']);
+            document.getElementById('prob-badge').innerText = `推測確率: ${displayProb}%`;
             document.getElementById('prob-reason').innerText = getVal(data, ['reason_for_prob', '根拠']);
 
             document.getElementById('game-name').innerText = (enName !== "-" && !jpName.includes(enName)) ? `${jpName} (${enName})` : jpName;
@@ -478,6 +499,7 @@
             const gameName = document.getElementById('game-name').innerText;
             const definition = document.getElementById('game-definition').innerText;
             const scenario = document.getElementById('game-scenario').innerText;
+            const probText = document.getElementById('prob-badge').innerText;
             
             const startSelf = document.getElementById('pos-start-self').innerText;
             const startOthers = document.getElementById('pos-start-others').innerText;
@@ -494,7 +516,7 @@
 
             const text = `
                 分析結果を読み上げます。
-                特定された心理ゲームは、${gameName}。
+                特定された心理ゲームは、${gameName}。${probText}。
                 解説。${definition}。
                 やり取りの要約。${scenario}。
                 
