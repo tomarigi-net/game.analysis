@@ -33,13 +33,13 @@
         .speaking { animation: pulse-blue 1.5s infinite; color: #6366f1; }
         @keyframes pulse-blue { 0% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(99, 102, 241, 0); } 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); } }
         @media print {
-            #login-screen, #input-section, #loading, #result-tabs, button, .switch, .speak-btn, #read-aloud-btn, #accordion-icon { display: none !important; }
+            #login-screen, #input-section, #loading, #result-tabs, button, .switch, .speak-btn, #read-aloud-btn, #accordion-icon, #prob-reason-icon { display: none !important; }
             body { background-color: white !important; padding: 0 !important; }
             .min-h-screen { min-height: auto !important; padding-bottom: 0 !important; }
             .game-card { border: 1px solid #ddd !important; box-shadow: none !important; break-inside: avoid; }
             #prediction-box { background: #f8fafc !important; color: #1e293b !important; border: 2px solid #1e293b !important; }
             #prediction-box h3 { color: #475569 !important; }
-            #original-text-container { display: block !important; border: 1px solid #eee !important; }
+            #original-text-container, #prob-reason-container { display: block !important; border: 1px solid #eee !important; }
             header h1 { color: black !important; }
         }
     </style>
@@ -185,9 +185,17 @@
                     <p id="game-definition" class="text-sm text-slate-500 italic border-t pt-2"></p>
                     <p id="game-scenario" class="text-sm text-slate-700 mt-2 bg-slate-50 p-3 rounded-lg border border-slate-100">-</p>
                     
-                    <div id="prob-reason-box" class="mt-4 p-3 bg-slate-50 border-l-4 border-slate-300 rounded-r-lg">
-                        <h4 class="text-[10px] font-bold text-slate-500 uppercase">分析の根拠</h4>
-                        <p id="prob-reason" class="text-xs text-slate-600 leading-relaxed italic">-</p>
+                    <div class="mt-4">
+                        <button onclick="toggleProbReason()" class="flex items-center justify-between w-full p-3 bg-slate-50 hover:bg-slate-100 rounded-xl border border-slate-200 transition-all">
+                            <div class="flex flex-col text-left">
+                                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">分析の根拠</span>
+                                <span class="text-[10px] text-slate-400">なぜこのゲームだと判定されたのかを確認する</span>
+                            </div>
+                            <span id="prob-reason-icon" class="text-slate-400 transition-transform duration-300 text-xs">▼</span>
+                        </button>
+                        <div id="prob-reason-container" class="hidden mt-2 p-4 bg-white border border-slate-100 rounded-xl shadow-inner">
+                            <p id="prob-reason" class="text-xs text-slate-600 leading-relaxed italic whitespace-pre-wrap">-</p>
+                        </div>
                     </div>
                 </div>
 
@@ -288,6 +296,19 @@
             }
         }
 
+        function toggleProbReason() {
+            const container = document.getElementById('prob-reason-container');
+            const icon = document.getElementById('prob-reason-icon');
+            const isHidden = container.classList.contains('hidden');
+            if (isHidden) {
+                container.classList.remove('hidden');
+                icon.style.transform = 'rotate(180deg)';
+            } else {
+                container.classList.add('hidden');
+                icon.style.transform = 'rotate(0deg)';
+            }
+        }
+
         function toggleOriginalText() {
             const container = document.getElementById('original-text-container');
             const icon = document.getElementById('accordion-icon');
@@ -307,7 +328,9 @@
             document.getElementById('loading').classList.add('hidden');
             document.getElementById('input-section').classList.remove('hidden');
             document.getElementById('original-text-container').classList.add('hidden');
+            document.getElementById('prob-reason-container').classList.add('hidden');
             document.getElementById('accordion-icon').style.transform = 'rotate(0deg)';
+            document.getElementById('prob-reason-icon').style.transform = 'rotate(0deg)';
             window.scrollTo(0, 0);
         }
 
@@ -393,7 +416,7 @@
                 "Look How Hard I've Tried": "どんなに私が一生懸命やったか", "Sweetheart": "恋人",
                 "Ain't It Awful": "ひどいじゃありませんか", "Blemish": "欠点探し", "Schlemiel": "不手際（シュレミール）",
                 "Why Don't You - Yes But": "はい、でも", "Let's You and Him Fight": "あなたと彼を戦わせましょう",
-                "Perversion": "倒錯", "Rapo": "ラポ",
+                "Perversion": "倒側", "Rapo": "ラポ",
                 "Stocking Game": "ストッキング・ゲーム", "Uproar": "大騒ぎ", "Cops and Robbers": "泥棒と警察",
                 "How Do You Get Out of Here?": "どうやってここを抜け出すか？", "Let's Pull a Fast One on Joey": "ジョーイの奴に一杯食わせようや",
                 "Greenhouse": "温室", "I'm Only Trying to Help You": "私はただあなたを助けようとしているのです",
@@ -412,7 +435,7 @@
                 }
             }
 
-            document.getElementById('prob-badge').innerText = `可能性: ${getVal(data, ['probability', '可能性'])}%`;
+            document.getElementById('prob-badge').innerText = `合致度: ${getVal(data, ['probability', '可能性'])}%`;
             document.getElementById('prob-reason').innerText = getVal(data, ['reason_for_prob', '根拠']);
 
             document.getElementById('game-name').innerText = (enName !== "-" && !jpName.includes(enName)) ? `${jpName} (${enName})` : jpName;
