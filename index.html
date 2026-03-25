@@ -167,8 +167,8 @@
 
             <div id="result-section" class="hidden space-y-6 mt-8 fade-in">
                 <div id="result-tabs" class="flex gap-2 mb-4">
-                    <button onclick="switchResult(0)" id="tab-0" class="flex-1 py-2 px-4 rounded-xl font-bold text-xs transition-all bg-indigo-600 text-white shadow-md">メイン分析</button>
-                    <button onclick="switchResult(1)" id="tab-1" class="flex-1 py-2 px-4 rounded-xl font-bold text-xs transition-all bg-slate-200 text-slate-500">次点の解釈</button>
+                    <button onclick="switchResult(0)" id="tab-0" style="flex: 3;" class="py-2 px-4 rounded-xl font-bold text-xs transition-all bg-indigo-600 text-white shadow-md">メイン分析</button>
+                    <button onclick="switchResult(1)" id="tab-1" style="flex: 2;" class="py-2 px-4 rounded-xl font-bold text-xs transition-all bg-slate-200 text-slate-500">次点の解釈</button>
                 </div>
 
                 <div class="game-card p-6 shadow-md border-l-8 border-indigo-600">
@@ -353,11 +353,11 @@
             const tab0 = document.getElementById('tab-0');
             const tab1 = document.getElementById('tab-1');
             if (index === 0) {
-                tab0.className = 'flex-1 py-2 px-4 rounded-xl font-bold text-xs bg-indigo-600 text-white shadow-md';
-                tab1.className = 'flex-1 py-2 px-4 rounded-xl font-bold text-xs bg-slate-200 text-slate-500';
+                tab0.className = 'py-2 px-4 rounded-xl font-bold text-xs bg-indigo-600 text-white shadow-md transition-all';
+                tab1.className = 'py-2 px-4 rounded-xl font-bold text-xs bg-slate-200 text-slate-500 transition-all';
             } else {
-                tab0.className = 'flex-1 py-2 px-4 rounded-xl font-bold text-xs bg-slate-200 text-slate-500';
-                tab1.className = 'flex-1 py-2 px-4 rounded-xl font-bold text-xs bg-indigo-600 text-white shadow-md';
+                tab0.className = 'py-2 px-4 rounded-xl font-bold text-xs bg-slate-200 text-slate-500 transition-all';
+                tab1.className = 'py-2 px-4 rounded-xl font-bold text-xs bg-indigo-600 text-white shadow-md transition-all';
             }
 
             renderData(data);

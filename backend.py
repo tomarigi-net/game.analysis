@@ -33,11 +33,11 @@ def home():
         
         mode_instruction = "\n【追加制約】ゲーム名称は必ずエリック・バーンの原典'Games People Play'にある公式名称36種類の中から選択してください。" if mode == "strict" else "\n【追加制約】原典に縛られず現代的な名称を自由に命名してください。"
         
-        # --- 修正箇所：JSONの各要素に「probability」と「reason_for_prob」を含めるよう明示的に指示 ---
+        # --- 修正箇所：'probability' を「分析モデルへの合致度」として算出するよう指示を調整 ---
         prompt = (
             f"{base_prompt}\n{mode_instruction}\n\n"
             f"【分析対象】: {thought}\n\n"
-            f"※必ず各要素に 'probability' (0-100の数値) と 'reason_for_prob' (分析根拠のテキスト) を含めてください。\n"
+            f"※必ず各要素に 'probability' (0-100の数値で示す分析モデルへの合致度) と 'reason_for_prob' (分析根拠のテキスト) を含めてください。\n"
             f"※必ず2つの解釈を含むJSON配列形式 [{{...}}, {{...}}] で出力してください。"
         )
 
