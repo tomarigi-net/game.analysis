@@ -175,7 +175,7 @@
                     <div class="flex justify-between items-start mb-1">
                         <div class="flex flex-col gap-1">
                             <h3 class="text-xs font-bold text-indigo-400 uppercase tracking-widest">特定された心理ゲーム</h3>
-                            <div id="prob-badge" class="inline-block bg-indigo-100 text-indigo-700 text-[10px] font-bold px-2 py-0.5 rounded-full w-fit">推測確率: -%</div>
+                            <div id="prob-badge" class="inline-block bg-indigo-100 text-indigo-700 text-[10px] font-bold px-2 py-0.5 rounded-full w-fit">妥当性: -%</div>
                         </div>
                         <button onclick="speakResult()" id="read-aloud-btn" class="speak-btn" title="結果を読み上げる">
                             <span id="speaker-icon">🔊</span>
@@ -189,7 +189,7 @@
                         <button onclick="toggleProbReason()" class="flex items-center justify-between w-full p-3 bg-slate-50 hover:bg-slate-100 rounded-xl border border-slate-200 transition-all">
                             <div class="flex flex-col text-left">
                                 <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">分析の根拠</span>
-                                <span class="text-[10px] text-slate-400">なぜこの可能性が高いと判定されたのかを確認する</span>
+                                <span class="text-[10px] text-slate-400">なぜこの妥当性が算出されたのかを確認する</span>
                             </div>
                             <span id="prob-reason-icon" class="text-slate-400 transition-transform duration-300 text-xs">▼</span>
                         </button>
@@ -344,11 +344,10 @@
             
             const customPrompt = `
                 以下のエピソードに含まれる「心理ゲーム的な要素（裏の交流や不条理な結末の要因）」の総体を100%と定義します。
-                その100%の中で、上位2つの候補が占める「可能性（probability）」を相対的に算出してください。
+                その中で、各候補がどの程度当てはまるかという「妥当性（validity）」を相対的に算出してください。
                 【数値の目安】
-                - 特定のゲームの特徴が顕著なら、第1候補を60〜80%程度。
-                - 複数の要素が混ざっているなら、各候補を30〜40%程度。
-                - 2つの候補の合計が必ずしも100%である必要はありません（例：1位50%、2位30%）。残りは「その他の未定義な要素」と解釈します。
+                - 複数のゲーム要素が重なって見える場合、合計が100%を超えても構いません（例：1位75%、2位45%）。
+                - 特定のゲームの特徴が顕著なら、その妥当性を高く設定してください。
             `;
 
             try {
@@ -448,8 +447,8 @@
                 }
             }
 
-            const displayProb = data.displayProb !== undefined ? data.displayProb : getVal(data, ['probability', '可能性']);
-            document.getElementById('prob-badge').innerText = `推測確率: ${displayProb}%`;
+            const displayVal = data.displayProb !== undefined ? data.displayProb : getVal(data, ['probability', '可能性']);
+            document.getElementById('prob-badge').innerText = `妥当性: ${displayVal}%`;
             document.getElementById('prob-reason').innerText = getVal(data, ['reason_for_prob', '根拠']);
 
             document.getElementById('game-name').innerText = (enName !== "-" && !jpName.includes(enName)) ? `${jpName} (${enName})` : jpName;
@@ -492,7 +491,7 @@
             const gameName = document.getElementById('game-name').innerText;
             const definition = document.getElementById('game-definition').innerText;
             const scenario = document.getElementById('game-scenario').innerText;
-            const probText = document.getElementById('prob-badge').innerText;
+            const probText = "妥当性 " + document.getElementById('prob-badge').innerText.replace('妥当性: ', '');
             
             const startSelf = document.getElementById('pos-start-self').innerText;
             const startOthers = document.getElementById('pos-start-others').innerText;
