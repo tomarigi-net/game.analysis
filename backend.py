@@ -33,7 +33,9 @@ def home():
         
         # 36種類限定モードの場合、リストを提示しつつ「分析後の照合」を強調する
         if mode == "strict":
-            game_list = "1,Alcoholic, 2.Debtor, 3.Kick Me, 4.Now I've Got You, You Son of a Bitch, 5.See What You Made Me Do, 6.Corner, 7.Courtroom, 8.Frigid Woman, 9.Harried, 10.If It Weren't For You, 11.Look How Hard I've Tried, 12.Sweetheart, 13.Ain't It Awful, 14.Blemish, 15.Schlemiel, 16.Why Don't You - Yes But, 17.Let's You and Him Fight, 18.Perversion, 19.Rapo(誘惑と拒絶), 20.Stocking Game(性的魅力による注目収集), 21.Uproar, 22.Cops and Robbers, 23.How Do You Get Out of Here?, 24.Let's Pull a Fast One on Joey, 25.Greenhouse, 26.I'm Only Trying to Help You, 27.Indigence, 28.Peasant, 29.Psychiatry, 30.Stupid, 31.Wooden Leg, 32.Busman's Holiday, 33.Cavalier, 34.Happy to Help, 35.Homely Sage, 36.They'll Be Glad They Knew Me"
+            game_list = (
+    "1.Alcoholic(自滅と救済の反復), 2.Debtor(負債による束縛と依存), 3.Kick Me(拒絶を誘う自虐的行動), 4.Now I've Got You, You Son of a Bitch(失態を待ち構えた正当な怒り), 5.See What You Made Me Do(失敗の責任転嫁), 6.Corner(逃げ道のない二重拘束), 7.Courtroom(第3者の前での非難合戦), 8.Frigid Woman(性的誘惑とその後の道徳的拒絶), 9.Harried(多忙による自滅と非難回避), 10.If It Weren't For You(相手を口実にした挑戦回避), 11.Look How Hard I've Tried(努力の強調と無力感の証明), 12.Sweetheart(皮肉まじりの偽りの賞賛), 13.Ain't It Awful(不幸の嘆きと連帯感の強要), 14.Blemish(些細な欠点探しによる優越), 15.Schlemiel(失敗と謝罪による許しの強要), 16.Why Don't You - Yes But(助言の拒絶による知的優位), 17.Let's You and Him Fight(対立の煽り立てと傍観), 18.Perversion(心理的・性的倒錯), 19.Rapo(誘惑と劇的な拒絶), 20.Stocking Game(性的魅力による注目収集), 21.Uproar(激しい衝突による親密さの回避), 22.Cops and Robbers(発覚のスリルと捕獲の誘発), 23.How Do You Get Out of Here?(出口のない関係性の演出), 24.Let's Pull a Fast One on Joey(他者を出し抜く共謀), 25.Greenhouse(理屈による感情の封じ込め), 26.I'm Only Trying to Help You(善意の押し売りと無力感), 27.Indigence(無力・貧困を理由にした依存), 28.Peasant(無知を装った他者操作), 29.Psychiatry(診断名や用語による変化の拒絶), 30.Stupid(無能を演じた責任回避), 31.Wooden Leg(ハンデを理由にした免責), 32.Busman's Holiday(休息の場での仕事への固執), 33.Cavalier(軽薄さによる真剣な関わりの回避), 34.Happy to Help(過剰な支援による心理的優位), 35.Homely Sage(教示的態度による優越), 36.They'll Be Glad They Knew Me(将来の報復を夢見た自己正当化)"
+)
             mode_instruction = f"""
 【追加制約】
 まず【分析プロセス】を完遂してください。その分析結果（仕掛けの質や相手の反応）に最も合致するゲーム名を、以下の「エリック・バーン原典36種類」から厳格に選択してください。
