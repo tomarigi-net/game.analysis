@@ -31,8 +31,18 @@ def home():
         with open("prompt.txt", "r", encoding="utf-8") as f:
             base_prompt = f.read()
         
-        mode_instruction = "\n【追加制約】ゲーム名称は必ずエリック・バーンの原典'Games People Play'にある公式名称36種類の中から選択してください。" if mode == "strict" else "\n【追加制約】原典に縛られず現代的な名称を自由に命名してください。"
-        
+# 36種類限定モードの場合、リストを提示しつつ「分析後の照合」を強調する
+if mode == "strict":
+    game_list = "1,Alcoholic, 2.Debtor, 3.Kick Me, 4.Now I've Got You, You Son of a Bitch, 5.See What You Made Me Do, 6.Corner, 7.Courtroom, 8.Frigid Woman, 9.Harried, 10.If It Weren't For You, 11.Look How Hard I've Tried, 12.Sweetheart, 13.Ain't It Awful, 14.Blemish, 15.Schlemiel, 16.Why Don't You - Yes But, 17.Let's You and Him Fight, 18.Perversion, 19.Rapo, 20.Stocking Game, 21.Uproar, 22.Cops and Robbers, 23.How Do You Get Out of Here?, 24.Let's Pull a Fast One on Joey, 25.Greenhouse, 26.I'm Only Trying to Help You, 27.Indigence, 28.Peasant, 29.Psychiatry, 30.Stupid, 31.Wooden Leg, 32.Busman's Holiday, 33.Cavalier, 34.Happy to Help, 35.Homely Sage, 36.They'll Be Glad They Knew Me"
+    mode_instruction = f"""
+【追加制約】
+まず【分析プロセス】を完遂してください。その分析結果（仕掛けの質や相手の反応）に最も合致するゲーム名を、以下の「エリック・バーン原典36種類」から厳格に選択してください。
+該当するものがないと感じる場合でも、プロセスの分析結果に最も近い構造を持つものをこの中から一つ選んでください。
+リスト：{game_list}
+"""
+else:
+    mode_instruction = "\n【追加制約】原典に縛られず、分析プロセスから導き出されたダイナミクスに最もふさわしい現代的な名称を自由に命名してください。"
+
         # --- 修正箇所：'probability' を「合致度」とし、根拠の具体性と多様性を指示 ---
         prompt = (
             f"{base_prompt}\n{mode_instruction}\n\n"
