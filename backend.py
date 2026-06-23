@@ -65,22 +65,4 @@ def home():
             f"12. 'position_start': 開始時の立ち位置オブジェクト。以下の3つのキーを必ず含むこと：\n"
             f"    - 'self': 自分のOK牧場の状態（'OK' または 'not OK'）\n"
             f"    - 'others': 相手のOK牧場の状態（'OK' または 'not OK'）\n"
-            f"    - 'description': 開始時の状態の心理的解説\n"
-            f"13. 'position_end': 結末の立ち位置オブジェクト.以下の3つのキーを必ず含むこと：\n"
-            f"    - 'self': 結末の自分のOK牧場の状態（'OK' または 'not OK'）\n"
-            f"    - 'others': 結末の相手のOK牧場の状態（'OK' または 'not OK'）\n"
-            f"    - 'description': 結末に至った状態の心理的解説"
-        )
-
-        payload = {
-            "contents": [{"parts": [{"text": prompt}]}],
-            "generationConfig": {
-                "response_mime_type": "application/json",
-                "temperature": 0.15
-            }
-        }
-        
-        response = requests.post(url, json=payload, timeout=60)
-        
-        if response.status_code == 429:
-            return jsonify({"error": "Rate Limit", "detail
+            f"    - 'description
