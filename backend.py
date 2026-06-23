@@ -17,7 +17,8 @@ def home():
 
     api_key = os.environ.get("GEMINI_API_KEY", "").strip()
     # モデル名は指定通り 2.5-flash を使用
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
+    # --- 【修正箇所】有料枠の制限解除を100%適用させるためのゲートウェイURL（v1）に変更 ---
+    url = f"https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key={api_key}"
 
     try:
         data = request.get_json()
