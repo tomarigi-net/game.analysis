@@ -25,7 +25,7 @@ def home():
         mode = data.get('mode', 'strict') if data else 'strict'
 
         if not thought:
-            return jsonify({"error": "Empty input"}), 200
+            return jsonify({"error": "Empty input"}), 400
 
         # prompt.txt の読み込み
         with open("prompt.txt", "r", encoding="utf-8") as f:
@@ -45,24 +45,62 @@ def home():
         else:
             mode_instruction = "\n【追加制約】原典に縛られず、分析プロセスから導き出されたダイナミクスに最もふさわしい現代的な名称を自由に命名してください。"
 
-        # --- フロントエンド（index.html）の要求するJSON構造に100%完全同調させる指示 ---
+        # --- プロンプトの統合部分の修正：JSON構造を完全に維持したまま配列にする指示 ---
         prompt = (
             f"{base_prompt}\n{mode_instruction}\n\n"
             f"【分析対象】: {thought}\n\n"
-            f"※必ず2つの異なる視点や解釈を含むJSON配列形式 [{{...}}, {{...}}] で出力してください。\n"
-            f"※各要素（オブジェクト）には、フロントエンドが表示処理を行えるよう、以下のキー（フィールド）を「必ず」漏れなく含めてください。英数字のキー名は完全に一致させてください：\n"
-            f"1. 'game_name': 判定された心理ゲームの日本語名称。\n"
-            f"2. 'english_name': 判定された心理ゲームの英語名称（例: 'Why Don't You - Yes But' や 'Kick Me' など、strictモードの場合は原典の英語表記を正確に。自由モードの場合は適切な英語を命名）。\n"
-            f"3. 'probability': 入力内容がその心理ゲームの特徴とどれだけ一致するかを0-100の数値で示す「分析モデルへの合致度」（整数値のみ）。\n"
-            f"4. 'reason_for_prob': なぜそのゲームと判定したのか。入力文内の具体的な描写を引用した分析の根拠・解説。\n"
-            f"5. 'definition': その心理ゲームが持つ一般的な定義や特徴の解説。\n"
-            f"6. 'scenario': 今回の入力内容における、やり取りの心理的要約。\n"
-            f"7. 'prediction': このままゲームを進めた場合に予測される、残酷で破綻した結末のシナリオ。\n"
-            f"8. 'hidden_motive': このゲームを演じることで当事者が無意識に得ようとしている「利得（真実）」。\n"
-            f"9. 'advice': この心理ゲームを根本から回避するための具体的な対応策やアドバイス。\n"
-            f"10. 'counseling': 当事者の心に寄り嘘う、今後のための「心の処方箋」メッセージ。\n"
-            f"11. 'subject_name': 分析の主軸となっている人物（例: '自分'、'部下' など）。\n"
-            f"12. 'position_start': 開始時の立ち位置オブジェクト。以下の3つのキーを必ず含むこと：\n"
-            f"    - 'self': 自分のOK牧場の状態（'OK' または 'not OK'）\n"
-            f"    - 'others': 相手のOK牧場の状態（'OK' または 'not OK'）\n"
-            f"    - 'description
+            f"【最優先指示】\n"
+            f"必ず、上記【出力形式】で指定されたすべてのフィールド（subject_name, target_name, game_name, english_name, probability, reason_for_prob, definition, scenario, position_start, position_end, prediction, hidden_motive, advice, counseling）を完全に備えたJSONオブジェクトを「2つ」含む、JSON配列形式 `[{{...}}, {{...}}]` で出力してください。Markdownのコードブロック（```json）は含めないでください。\n"
+            f"2つのオブジェクトは、それぞれ異なる視点や解釈に基づく分析にしてください。\n"
+            f"各オブジェクトの 'probability' には、入力内容がその心理ゲームの特徴とどれだけ一致するかを0-100の数値で示す「分析モデルへの合致度」を入れ、'reason_for_prob' には、なぜそのゲームと判定したのか、入力文内の具体的なセリフや心理描写を引用し、交流分析の観点から具体的に解説した文章を入れてください。"
+        )
+
+        payload = {
+            "contents": [{"parts": [{"text": prompt}]}],
+            "generationConfig": {
+                "response_mime_type": "application/json",
+                "temperature": 0.15
+            }
+        }
+
+        response = requests.post(url, json=payload, timeout=60)
+        
+        if response.status_code == 429:
+            return jsonify({"error": "Rate Limit", "detail": "リクエスト制限中です。しばらくお待ちください。"}), 429
+
+        if response.status_code != 200:
+            return jsonify({"error": "API Error", "detail": response.text}), 502
+
+        result = response.json()
+        
+        if 'candidates' in result and result['candidates']:
+            ai_text = result['candidates'][0]['content']['parts'][0]['text'].strip()
+            clean_text = re.sub(r'```json\s*|```', '', ai_text)
+            
+            start_indices = [i for i in [clean_text.find('{'), clean_text.find('[')] if i != -1]
+            end_indices = [i for i in [clean_text.rfind('}'), clean_text.rfind(']')] if i != -1]
+            
+            start_idx = min(start_indices) if start_indices else 0
+            end_idx = max(end_indices) if end_indices else len(clean_text)
+            
+            if start_indices and end_indices:
+                clean_text = clean_text[start_idx:end_idx+1]
+            
+            try:
+                parsed_json = json.loads(clean_text)
+                
+                if isinstance(parsed_json, dict):
+                    parsed_json = [parsed_json]
+                
+                return jsonify(parsed_json)
+            except json.JSONDecodeError:
+                return jsonify({"error": "Parse Error", "raw": clean_text}), 500
+        else:
+            return jsonify({"error": "No response from AI"}), 500
+
+    except Exception as e:
+        return jsonify({"error": "System error", "detail": str(e)}), 500
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)

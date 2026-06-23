@@ -123,7 +123,7 @@
         <div class="max-w-2xl mx-auto px-4 py-10">
             <header class="text-center mb-10">
                 <h1 class="text-3xl font-bold text-indigo-900 leading-tight">心理ゲーム・アナライザー</h1>
-                <p class="text-indigo-600 mt-2 font-medium">「OK <-> not OK」の入れ替わりから、隠されたシナリオを暴く</p>
+                <p class="text-indigo-600 mt-2 font-medium">「OK &lt;-&gt; not OK」の入れ替わりから、隠されたシナリオを暴く</p>
             </header>
 
             <div id="input-section" class="space-y-4">
@@ -362,6 +362,14 @@
                 });
                 
                 let data = await response.json();
+                
+                // エラーレスポンスのハンドリング
+                if (data && data.error) {
+                    alert("分析中にエラーが発生しました:\n" + (data.detail || data.error));
+                    resetDisplay();
+                    return;
+                }
+
                 if (typeof data === 'string') data = JSON.parse(data);
 
                 analysisResults = Array.isArray(data) ? data : [data];
@@ -435,7 +443,7 @@
                 "Greenhouse": "温室", "I'm Only Trying to Help You": "私はただあなたを助けようとしているのです",
                 "Indigence": "貧乏", "Peasant": "農民", "Psychiatry": "精神医学", "Stupid": "馬鹿",
                 "Wooden Leg": "木製の義足", "Busman's Holiday": "バス運転手の休日", "Cavalier": "騎士",
-                "Happy to Help": "喜んでお手伝いします", "Homely Sage": "素朴な賢人", "They'll Be Glad They Knew Me": "彼らは私を知っていたことを喜ぶでしょう",
+                "Happy to Help": "喜んでお手お手伝いします", "Homely Sage": "素朴な賢人", "They'll Be Glad They Knew Me": "彼らは私を知っていたことを喜ぶでしょう",
             };
 
             let jpName = getVal(data, ['game_name', '心理ゲーム']);
