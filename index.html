@@ -123,7 +123,7 @@
         <div class="max-w-2xl mx-auto px-4 py-10">
             <header class="text-center mb-10">
                 <h1 class="text-3xl font-bold text-indigo-900 leading-tight">心理ゲーム・アナライザー</h1>
-                <p class="text-indigo-600 mt-2 font-medium">「OK &lt;-&gt; not OK」の入れ替わりから、隠されたシナリオを暴く</p>
+                <p class="text-indigo-600 mt-2 font-medium">「OK <-> not OK」の入れ替わりから、隠されたシナリオを暴く</p>
             </header>
 
             <div id="input-section" class="space-y-4">
@@ -175,7 +175,7 @@
                     <div class="flex justify-between items-start mb-1">
                         <div class="flex flex-col gap-1">
                             <h3 class="text-xs font-bold text-indigo-400 uppercase tracking-widest">特定された心理ゲーム</h3>
-                            <div id="prob-badge" class="inline-block bg-indigo-100 text-indigo-700 text-[10px] font-bold px-2 py-0.5 rounded-full w-fit">妥当性: -%</div>
+                            <div id="prob-badge" class="inline-block bg-indigo-100 text-indigo-700 text-[10px] font-bold px-2 py-0.5 rounded-full w-fit">推測確率: -%</div>
                         </div>
                         <button onclick="speakResult()" id="read-aloud-btn" class="speak-btn" title="結果を読み上げる">
                             <span id="speaker-icon">🔊</span>
@@ -343,12 +343,11 @@
             document.getElementById('loading').classList.remove('hidden');
             
             const customPrompt = `
-                以下のエピソードに含まれる「心理ゲーム的な要素（裏の交流や不条理な結末の要因）」の総体を100%と定義します。
-                その100%の中で、上位2つの候補が占める「可能性（probability）」を相対的に算出してください。
-                【数値の目安】
-                - 特定のゲームの特徴が顕著なら、第1候補を60〜80%程度。
-                - 複数の要素が混ざっているなら、各候補を30〜40%程度。
-                - 2つの候補の合計が必ずしも100%である必要はありません（例：1位50%、2位30%）。残りは「その他の未定義な要素」と解釈します。
+                以下のエピソードを心理ゲームとして分析し、JSON配列で2つの候補を返してください。
+                【重要：確率の算出ルール】
+                1. 各候補の「可能性（probability）」の合計が必ず100（%）になるように相対評価で算出してください。
+                2. 第一候補が明らかに優勢な場合は「80と20」、拮抗している場合は「55と45」のように配分してください。
+                3. 単なる「合致度」ではなく、「全体を100とした場合の推測確率」として出力してください。
             `;
 
             try {
@@ -362,21 +361,21 @@
                 });
                 
                 let data = await response.json();
-                
-                // エラーレスポンスのハンドリング
-                if (data && data.error) {
-                    alert("分析中にエラーが発生しました:\n" + (data.detail || data.error));
-                    resetDisplay();
-                    return;
-                }
-
                 if (typeof data === 'string') data = JSON.parse(data);
 
                 analysisResults = Array.isArray(data) ? data : [data];
 
-                analysisResults.forEach(res => {
-                    res.displayProb = res.probability || 0;
-                });
+                if (analysisResults.length >= 2) {
+                    const p1 = parseFloat(analysisResults[0].probability || 0);
+                    const p2 = parseFloat(analysisResults[1].probability || 0);
+                    const total = p1 + p2;
+                    if (total > 0) {
+                        analysisResults[0].displayProb = Math.round((p1 / total) * 100);
+                        analysisResults[1].displayProb = 100 - analysisResults[0].displayProb;
+                    }
+                } else if (analysisResults.length === 1) {
+                    analysisResults[0].displayProb = 100;
+                }
 
                 document.getElementById('loading').classList.add('hidden');
                 document.getElementById('result-section').classList.remove('hidden');
@@ -443,7 +442,7 @@
                 "Greenhouse": "温室", "I'm Only Trying to Help You": "私はただあなたを助けようとしているのです",
                 "Indigence": "貧乏", "Peasant": "農民", "Psychiatry": "精神医学", "Stupid": "馬鹿",
                 "Wooden Leg": "木製の義足", "Busman's Holiday": "バス運転手の休日", "Cavalier": "騎士",
-                "Happy to Help": "喜んでお手お手伝いします", "Homely Sage": "素朴な賢人", "They'll Be Glad They Knew Me": "彼らは私を知っていたことを喜ぶでしょう",
+                "Happy to Help": "喜んでお手伝いします", "Homely Sage": "素朴な賢人", "They'll Be Glad They Knew Me": "彼らは私を知っていたことを喜ぶでしょう",
             };
 
             let jpName = getVal(data, ['game_name', '心理ゲーム']);
@@ -457,7 +456,7 @@
             }
 
             const displayProb = data.displayProb !== undefined ? data.displayProb : getVal(data, ['probability', '可能性']);
-            document.getElementById('prob-badge').innerText = `妥当性: ${displayProb}%`;
+            document.getElementById('prob-badge').innerText = `推測確率: ${displayProb}%`;
             document.getElementById('prob-reason').innerText = getVal(data, ['reason_for_prob', '根拠']);
 
             document.getElementById('game-name').innerText = (enName !== "-" && !jpName.includes(enName)) ? `${jpName} (${enName})` : jpName;
