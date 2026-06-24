@@ -25,13 +25,13 @@
   "definition": "ゲームの事典的解説（100文字程度）",
   "scenario": "客観的なやり取りの要約",
   "position_start": {
-    "self": "開始時の自分の状態",
-    "others": "開始時の相手の状態",
+    "self": "開始時の自分の状態(I'm OK または I'm not OK)",
+    "others": "開始時の相手の状態(You're OK または You're not OK)",
     "description": "開始時の心理状態の解説"
   },
   "position_end": {
-    "self": "結末の自分の状態",
-    "others": "結末の相手の状態",
+    "self": "結末の自分の状態(I'm OK または I'm not OK)",
+    "others": "結末の相手の状態(You're OK または You're not OK)",
     "description": "結末の心理状態の解説"
   },
   "prediction": "このまま進んだ場合の人間関係や社会的代償の予測",
