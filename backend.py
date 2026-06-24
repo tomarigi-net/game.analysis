@@ -8,8 +8,10 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "https://tomarigi-net.github.io"}})
 
-@app.route('/', methods=['GET', 'POST', 'OPTIONS'], strict_slashes=False)
+@app.route('/', methods=['GET', 'POST', 'OPTIONS', 'HEAD'], strict_slashes=False)
 def home():
+    if request.method == 'HEAD':
+        return '', 200
     if request.method == 'OPTIONS':
         return '', 200
     if request.method == 'GET':
@@ -42,9 +44,8 @@ def home():
         else:
             mode_instruction = """
 【追加制約】
-原典に縛られる必要はありません。分析プロセスから導き出されたダイナミクスを最優先してください。
-エリック・バーンの36種類のリストに限定せず、現代の人間関係においてそのやり取りが持つ本質的な力学（ダイナミクス）を最も的確に言い表せる「現代的なゲーム名称」を自由に命名してください。
-※回答は、簡潔かつ要点を絞ったJSON形式で出力してください。詳細な解説は100字以内に留めてください。
+原典に縛られず、現代的なゲーム名称を命名してください。
+※回答は、簡潔かつ要点を絞ったJSON形式で出力してください。詳細な解説は最小限に留めてください。
 """
 
         prompt = (
@@ -62,7 +63,8 @@ def home():
             }
         }
 
-        response = requests.post(url, json=payload, timeout=60)
+        # タイムアウトを90秒に延長
+        response = requests.post(url, json=payload, timeout=90)
 
         if response.status_code == 429:
             return jsonify({"error": "Rate Limit", "detail": "リクエスト制限中です。しばらくお待ちください。"}), 429
@@ -74,28 +76,24 @@ def home():
 
         if 'candidates' in result and result['candidates']:
             ai_text = result['candidates'][0]['content']['parts'][0]['text'].strip()
-            clean_text = re.sub(r'```json\s*|```', '', ai_text)
-
-            # 配列 [ ] と オブジェクト { } の両方に対応する抽出ロジック
-            start_indices = [i for i in [clean_text.find('{'), clean_text.find('[')] if i != -1]
-            end_indices = [i for i in [clean_text.rfind('}'), clean_text.rfind(']')] if i != -1]
-
-            start_idx = min(start_indices) if start_indices else 0
-            end_idx = max(end_indices) if end_indices else len(clean_text)
-
-            if start_indices and end_indices:
-                clean_text = clean_text[start_idx:end_idx+1]
-
+            
+            # メモリ負荷を抑えるための簡易抽出処理
+            clean_text = ai_text.replace("```json", "").replace("```", "").strip()
+            start = -1
+            for char in ['[', '{']:
+                idx = clean_text.find(char)
+                if idx != -1 and (start == -1 or idx < start):
+                    start = idx
+            if start != -1:
+                clean_text = clean_text[start:]
+            
             try:
                 parsed_json = json.loads(clean_text)
-
-                # 常に配列形式でフロントに返す
                 if isinstance(parsed_json, dict):
                     parsed_json = [parsed_json]
-
                 return jsonify(parsed_json)
-            except json.JSONDecodeError:
-                return jsonify({"error": "Parse Error", "raw": clean_text}), 500
+            except Exception as e:
+                return jsonify({"error": "Parse Error", "detail": str(e)}), 500
         else:
             return jsonify({"error": "No response from AI"}), 500
 
