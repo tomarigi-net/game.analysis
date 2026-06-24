@@ -31,16 +31,22 @@ def home():
         with open("prompt.txt", "r", encoding="utf-8") as f:
             base_prompt = f.read()
         
-        mode_instruction = "\n【追加制約】ゲーム名称は必ずエリック・バーンの原典'Games People Play'にある公式名称36種類の中から選択してください。" if mode == "strict" else "\n【追加制約】原典に縛られず現代的な名称を自由に命名してください。"
+        # 36種類限定モードの場合、分析後の照合を強調
+        if mode == "strict":
+            game_list = "アルコール中毒者, 負債者, 私を蹴ってください, さあ捕まえたぞ, あなたが私にさせたことといったら, 追い詰め, 法廷, 冷感症の女, 苦労性, あなたさえいなければ, どんなに私が一生懸命やったか, 恋人, ひどいじゃありませんか, 欠点探し, 不手際, はいでも, あなたと彼を戦わせましょう, 倒側, ラポ, ストッキング・ゲーム, 大騒ぎ, 泥棒と警察, どうやってここを抜け出すか, ジョーイの奴に一杯食わせようや, 温室, 私はただあなたを助けようとしているのです, 貧乏, 農民, 精神医学, 馬鹿, 木製の義足, バス運転手の休日, 騎士, 喜んでお手伝いします, 素朴な賢人, 彼らは私を知っていたことを喜ぶでしょう"
+            mode_instruction = f"""
+【追加制約】
+まず【分析プロセス】を完遂してください。その分析結果（仕掛けの質や相手の反応）に最も合致するゲーム名を、以下の「エリック・バーン原典36種類」から厳格に選択してください。
+リスト：{game_list}
+"""
+        else:
+            mode_instruction = "\n【追加制約】原典に縛られず、分析プロセスから導き出されたダイナミクスに最もふさわしい現代的な名称を自由に命名してください。"
         
-        # --- 修正箇所：'probability' を「合致度」とし、根拠の具体性と多様性を指示 ---
         prompt = (
             f"{base_prompt}\n{mode_instruction}\n\n"
             f"【分析対象】: {thought}\n\n"
             f"※必ず2つの異なる視点や解釈を含むJSON配列形式 [{{...}}, {{...}}] で出力してください。\n"
-            f"※各要素には以下のフィールドを必ず含めてください：\n"
-            f"1. 'probability': 入力内容がその心理ゲームの特徴とどれだけ一致するかを0-100の数値で示す「分析モデルへの合致度」。\n"
-            f"2. 'reason_for_prob': なぜそのゲームと判定したのか。入力文内の具体的なセリフや心理描写を引用し、交流分析の観点から具体的に解説してください。「指示に従ったから」等のメタな回答は禁止します。"
+            f"※各要素には'probability'（分析モデルとの合致度: 0-100）と、分析プロセスに基づいた'reason_for_prob'を必ず含めてください。"
         )
 
         payload = {
@@ -57,7 +63,7 @@ def home():
             return jsonify({"error": "Rate Limit", "detail": "リクエスト制限中です。しばらくお待ちください。"}), 429
 
         if response.status_code != 200:
-            return jsonify({"error": "API Error", "detail": response.text}), 200
+            return jsonify({"error": "API Error", "detail": response.text}), 502
 
         result = response.json()
         
@@ -84,12 +90,12 @@ def home():
                 
                 return jsonify(parsed_json)
             except json.JSONDecodeError:
-                return jsonify({"error": "Parse Error", "raw": clean_text})
+                return jsonify({"error": "Parse Error", "raw": clean_text}), 500
         else:
-            return jsonify({"error": "No response from AI"}), 200
+            return jsonify({"error": "No response from AI"}), 500
 
     except Exception as e:
-        return jsonify({"error": "System error", "detail": str(e)}), 200
+        return jsonify({"error": "System error", "detail": str(e)}), 500
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
