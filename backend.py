@@ -64,6 +64,9 @@ def home():
 
         response = requests.post(url, json=payload, timeout=60)
 
+        print("STATUS:", response.status_code)
+        print("BODY:", response.text)
+
         if response.status_code == 429:
             return jsonify({"error": "Rate Limit", "detail": "リクエスト制限中です。しばらくお待ちください。"}), 429
 
