@@ -67,7 +67,7 @@ def home():
             "contents": [{"parts": [{"text": prompt}]}],
             "generationConfig": {
                 "response_mime_type": "application/json",
-                "temperature": 0.15
+                "temperature": 0.15,
                 "max_output_tokens": 1000
             }
         }
