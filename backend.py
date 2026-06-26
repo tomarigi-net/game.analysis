@@ -68,6 +68,7 @@ def home():
             "generationConfig": {
                 "response_mime_type": "application/json",
                 "temperature": 0.15
+                "max_output_tokens": 1000
             }
         }
 
