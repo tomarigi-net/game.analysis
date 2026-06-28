@@ -42,7 +42,44 @@ def home():
 
         # 36種類限定モードの場合、分析後の照合を強調
         if mode == "strict":
-            game_list = "1.Alcoholic(自滅と救済の反復), 2.Debtor(負債による束縛と依存), 3.Kick Me(拒絶を誘う自虐的行動), 4.Now I've Got You, You Son of a Bitch(失態を待ち構えた正当な怒り), 5.See What You Made Me Do(失敗の責任転嫁), 6.Corner(逃げ道のない二重拘束), 7.Courtroom(第3者の前での非難合戦), 8.Frigid Woman(性的誘惑とその後の道徳的拒絶), 9.Harried(多忙による自滅と非難回避), 10.If It Weren't For You(相手を口実にした挑戦回避), 11.Look How Hard I've Tried(努力の強調と無力感の証明), 12.Sweetheart(皮肉まじりの偽りの賞賛), 13.Ain't It Awful(不幸の嘆きと連帯感の強要), 14.Blemish(些浅な欠点探しによる優越), 15.Schlemiel(失敗と謝罪による許しの強要), 16.Why Don't You - Yes But(助言の拒絶による知的優位), 17.Let's You and Him Fight(対立の煽り立てと傍観), 18.Perversion(心理的・性的倒錯), 19.Rapo(誘惑と劇的な拒絶), 20.Stocking Game(性的魅力による注目収集), 21.Uproar(激しい衝突による親密さの回避), 22.Cops and Robbers(発覚のスリルと捕獲の誘発), 23.How Do You Get Out of Here?(出口のない関係性の演出), 24.Let's Pull a Fast One on Joey(他者を出し抜く共謀), 25.Greenhouse(理屈による感情の封じ込め), 26.I'm Only Trying to Help You(善意の押し売りと無力感), 27.Indigence(無力・貧困を理由にした依存), 28.Peasant(無知を装った他者操作), 29.Psychiatry(診断名や用語による変化の拒絶), 30.Stupid(無能を演じた責任回避), 31.Wooden Leg(ハンデを理由にした免責), 32.Busman's Holiday(休息の場での仕事への固執), 33.Cavalier(軽薄さによる真剣な関わりの回避), 34.Happy to Help(過剰な支援による心理的優位), 35.Homely Sage(教示的態度による優越), 36.They'll Be Glad They Knew Me(将来の報復を夢見た自己正当化)"
+            game_list = "
+1.Alcoholic(個人/依存/反復),
+2.Debtor(相互/拘束/依存),
+3.KickMe(個人/誘発拒絶/反復),
+4.NowI'veGotYou(二者/捕獲/失点確定),
+5.SeeWhatYouMadeMeDo(二者/転嫁/責任移動),
+6.Corner(相互/閉塞/二重拘束),
+7.Courtroom(集団/裁定/非難増幅),
+8.FrigidWoman(二者/誘惑拒絶/反復),
+9.Harried(個人/過負荷/回避),
+10.IfItWeren'tForYou(二者/回避/依存正当化),
+11.LookHowHardI'veTried(個人/証明/無力化),
+12.Sweetheart(二者/皮肉優位/関係操作),
+13.Ain'tItAwful(集団/共感拘束/不満拡散),
+14.Blemish(二者/欠点捕獲/優越),
+15.Schlemiel(二者/失敗誘発/許可獲得),
+16.WhyDon'tYouYesBut(二者/助言拒否/優位維持),
+17.Let'sYouAndHimFight(三者/対立誘導/傍観),
+18.Perversion(二者/倒錯操作/混乱),
+19.Rapo(二者/誘惑拒絶/劇化),
+20.StockingGame(個人/注目獲得/誘惑),
+21.Uproar(集団/拡散/エスカレーション),
+22.CopsAndRobbers(二者/捕獲ゲーム/スリル),
+23.HowDoYouGetOut(二者/閉塞/出口喪失),
+24.FastOneOnJoey(共謀/出し抜き/裏操作),
+25.Greenhouse(二者/理性支配/感情抑制),
+26.ImOnlyTryingToHelp(二者/介入/無力化),
+27.Indigence(個人/依存/無力化),
+28.Peasant(二者/無知偽装/操作),
+29.Psychiatry(二者/診断操作/固定化),
+30.Stupid(個人/無能演出/回避),
+31.WoodenLeg(個人/免責/正当化),
+32.BusmansHoliday(個人/役割侵食/固執),
+33.Cavalier(個人/回避/軽薄化),
+34.HappyToHelp(二者/過剰支援/優位),
+35.HomelySage(二者/教示/優位),
+36.TheyllBeGladTheyKnewMe(個人/未来正当化/報復想像)
+"
             mode_instruction = f"""
 【追加制約】
 まず【分析プロセス】を完遂してください。その分析結果（仕掛けの質や相手の反応）に最も合致するゲーム名を、以下の「エリック・バーン原典36種類」から厳格に選択してください。
