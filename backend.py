@@ -111,7 +111,7 @@ def home():
                 "36.TheyllBeGladTheyKnewMe = IND + DEF + FLIP"
             ]
 
-    mode_instruction = f"""
+            mode_instruction = f"""
 【追加制約】
 まず【分析プロセス】を完遂してください。その分析結果（仕掛けの質や相手の反応）に最も合致するゲーム名を、以下の「エリック・バーン原典36種類」から厳格に選択してください。
 リスト：{game_list}
