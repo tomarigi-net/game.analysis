@@ -42,7 +42,7 @@ def home():
 
         # 36種類限定モードの場合、分析後の照合を強調
         if mode == "strict":
-game_ontology = {
+            game_ontology = {
 "STRUCTURE": {
 "IND": "Individual（単独主体・個人内プロセス）",
 "DYA": "Dyadic（二者関係・対人相互作用）",
