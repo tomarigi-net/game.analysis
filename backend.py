@@ -41,75 +41,75 @@ def home():
             base_prompt = f.read()
 
         # 36種類限定モードの場合、分析後の照合を強調
-if mode == "strict":
+        if mode == "strict":
 
-    game_ontology = {
-        "STRUCTURE": {
-            "IND": "Individual（単独主体・個人内プロセス）",
-            "DYA": "Dyadic（二者関係・対人相互作用）",
-            "TRI": "Triadic（三者関係・仲介・対立誘導）",
-            "GRP": "Group（3人以上・集団ダイナミクス）"
-        },
+            game_ontology = {
+                "STRUCTURE": {
+                    "IND": "Individual（単独主体・個人内プロセス）",
+                    "DYA": "Dyadic（二者関係・対人相互作用）",
+                    "TRI": "Triadic（三者関係・仲介・対立誘導）",
+                    "GRP": "Group（3人以上・集団ダイナミクス）"
+                },
 
-        "DOMAIN": {
-            "DEP": "Dependency（依存・関係維持・支援依存）",
-            "CON": "Control/Accusation（捕獲・非難・責任追及）",
-            "ESC": "Escape（回避・撤退・関与回避）",
-            "ESCAL": "Escalation（感情・論点の拡散・増幅）",
-            "INV": "Intervention（助言・介入・救済行為）",
-            "CTRL": "Control manipulation（心理的支配・誘導）",
-            "DEF": "Defense/Justification（自己正当化・責任回避）",
-            "REW": "Reward/Recognition（承認・注目・優位獲得）",
-            "OPN": "Closed structure（出口のない関係・閉塞）"
-        },
+                "DOMAIN": {
+                    "DEP": "Dependency（依存・関係維持・支援依存）",
+                    "CON": "Control/Accusation（捕獲・非難・責任追及）",
+                    "ESC": "Escape（回避・撤退・関与回避）",
+                    "ESCAL": "Escalation（感情・論点の拡散・増幅）",
+                    "INV": "Intervention（助言・介入・救済行為）",
+                    "CTRL": "Control manipulation（心理的支配・誘導）",
+                    "DEF": "Defense/Justification（自己正当化・責任回避）",
+                    "REW": "Reward/Recognition（承認・注目・優位獲得）",
+                    "OPN": "Closed structure（出口のない関係・閉塞）"
+                },
 
-        "FLOW": {
-            "REP": "Repetition（同構造の反復）",
-            "SPIL": "Spillover（拡散・巻き込み）",
-            "LOOP": "Feedback loop（循環・助言反復）",
-            "LOCK": "Lock-in（固定化・抜け出し不能）",
-            "FLIP": "Role flip（被害者↔加害者などの反転）"
-        }
-    }
+                "FLOW": {
+                    "REP": "Repetition（同構造の反復）",
+                    "SPIL": "Spillover（拡散・巻き込み）",
+                    "LOOP": "Feedback loop（循環・助言反復）",
+                    "LOCK": "Lock-in（固定化・抜け出し不能）",
+                    "FLIP": "Role flip（被害者↔加害者などの反転）"
+                }
+            }
 
-    game_list = [
-        "1.Alcoholic = IND + DEP + REP",
-        "2.Debtor = DYA + DEP + LOCK",
-        "3.KickMe = IND + REW + REP",
-        "4.NowI'veGotYou = DYA + CON + LOCK",
-        "5.SeeWhatYouMadeMeDo = DYA + DEF + FLIP",
-        "6.Corner = DYA + OPN + LOCK",
-        "7.Courtroom = GRP + CON + SPIL",
-        "8.FrigidWoman = DYA + CTRL + REP",
-        "9.Harried = IND + ESC + REP",
-        "10.IfItWeren'tForYou = DYA + DEF + REP",
-        "11.LookHowHardI'veTried = IND + DEF + LOOP",
-        "12.Sweetheart = DYA + CTRL + FLIP",
-        "13.Ain'tItAwful = GRP + REW + SPIL",
-        "14.Blemish = DYA + CON + REP",
-        "15.Schlemiel = DYA + DEF + LOOP",
-        "16.WhyDon'tYouYesBut = DYA + INV + LOOP",
-        "17.Let'sYouAndHimFight = TRI + CTRL + SPIL",
-        "18.Perversion = DYA + CTRL + FLIP",
-        "19.Rapo = DYA + CTRL + FLIP",
-        "20.StockingGame = IND + REW + LOOP",
-        "21.Uproar = GRP + ESCAL + SPIL",
-        "22.CopsAndRobbers = DYA + CON + LOOP",
-        "23.HowDoYouGetOut = DYA + OPN + LOCK",
-        "24.FastOneOnJoey = GRP + CTRL + FLIP",
-        "25.Greenhouse = DYA + CTRL + LOCK",
-        "26.ImOnlyTryingToHelp = DYA + INV + DEF",
-        "27.Indigence = IND + DEP + LOCK",
-        "28.Peasant = DYA + CTRL + DEF",
-        "29.Psychiatry = DYA + CTRL + LOCK",
-        "30.Stupid = IND + DEF + REP",
-        "31.WoodenLeg = IND + DEF + LOCK",
-        "32.BusmansHoliday = IND + ESC + LOOP",
-        "33.Cavalier = IND + ESC + REP",
-        "34.HappyToHelp = DYA + INV + REW",
-        "35.HomelySage = DYA + CTRL + REW",
-        "36.TheyllBeGladTheyKnewMe = IND + DEF + FLIP"
-    ]
+            game_list = [
+                "1.Alcoholic = IND + DEP + REP",
+                "2.Debtor = DYA + DEP + LOCK",
+                "3.KickMe = IND + REW + REP",
+                "4.NowI'veGotYou = DYA + CON + LOCK",
+                "5.SeeWhatYouMadeMeDo = DYA + DEF + FLIP",
+                "6.Corner = DYA + OPN + LOCK",
+                "7.Courtroom = GRP + CON + SPIL",
+                "8.FrigidWoman = DYA + CTRL + REP",
+                "9.Harried = IND + ESC + REP",
+                "10.IfItWeren'tForYou = DYA + DEF + REP",
+                "11.LookHowHardI'veTried = IND + DEF + LOOP",
+                "12.Sweetheart = DYA + CTRL + FLIP",
+                "13.Ain'tItAwful = GRP + REW + SPIL",
+                "14.Blemish = DYA + CON + REP",
+                "15.Schlemiel = DYA + DEF + LOOP",
+                "16.WhyDon'tYouYesBut = DYA + INV + LOOP",
+                "17.Let'sYouAndHimFight = TRI + CTRL + SPIL",
+                "18.Perversion = DYA + CTRL + FLIP",
+                "19.Rapo = DYA + CTRL + FLIP",
+                "20.StockingGame = IND + REW + LOOP",
+                "21.Uproar = GRP + ESCAL + SPIL",
+                "22.CopsAndRobbers = DYA + CON + LOOP",
+                "23.HowDoYouGetOut = DYA + OPN + LOCK",
+                "24.FastOneOnJoey = GRP + CTRL + FLIP",
+                "25.Greenhouse = DYA + CTRL + LOCK",
+                "26.ImOnlyTryingToHelp = DYA + INV + DEF",
+                "27.Indigence = IND + DEP + LOCK",
+                "28.Peasant = DYA + CTRL + DEF",
+                "29.Psychiatry = DYA + CTRL + LOCK",
+                "30.Stupid = IND + DEF + REP",
+                "31.WoodenLeg = IND + DEF + LOCK",
+                "32.BusmansHoliday = IND + ESC + LOOP",
+                "33.Cavalier = IND + ESC + REP",
+                "34.HappyToHelp = DYA + INV + REW",
+                "35.HomelySage = DYA + CTRL + REW",
+                "36.TheyllBeGladTheyKnewMe = IND + DEF + FLIP"
+            ]
 
     mode_instruction = f"""
 【追加制約】
