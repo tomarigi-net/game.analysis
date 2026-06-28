@@ -42,7 +42,7 @@ def home():
 
         # 36種類限定モードの場合、分析後の照合を強調
         if mode == "strict":
-            game_list = "
+            game_list = """
 1.Alcoholic(個人/依存/反復),
 2.Debtor(相互/拘束/依存),
 3.KickMe(個人/誘発拒絶/反復),
@@ -79,7 +79,7 @@ def home():
 34.HappyToHelp(二者/過剰支援/優位),
 35.HomelySage(二者/教示/優位),
 36.TheyllBeGladTheyKnewMe(個人/未来正当化/報復想像)
-"
+"""
             mode_instruction = f"""
 【追加制約】
 まず【分析プロセス】を完遂してください。その分析結果（仕掛けの質や相手の反応）に最も合致するゲーム名を、以下の「エリック・バーン原典36種類」から厳格に選択してください。
