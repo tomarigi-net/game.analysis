@@ -42,43 +42,72 @@ def home():
 
         # 36種類限定モードの場合、分析後の照合を強調
         if mode == "strict":
-            game_list = """
-1.Alcoholic(個人/依存/反復),
-2.Debtor(二者/経済拘束/依存維持),
-3.KickMe(個人/拒絶誘発/自虐反復),
-4.NowI'veGotYou(二者/捕獲目的/失点確定追及),
-5.SeeWhatYouMadeMeDo(二者/責任転嫁/非受容),
-6.Corner(二者/選択不能/二重拘束強制),
-7.Courtroom(集団/公開裁定/非難合意形成),
-8.FrigidWoman(二者/誘惑後拒絶/道徳正当化),
-9.Harried(個人/過負荷/責任回避),
-10.IfItWeren'tForYou(二者/他責回避/依存正当化),
-11.LookHowHardI'veTried(個人/努力誇示/無力証明),
-12.Sweetheart(二者/皮肉称賛/関係操作),
-13.Ain'tItAwful(集団/不満共有/共感拘束),
-14.Blemish(二者/欠点探索/優越確保),
-15.Schlemiel(二者/失敗誘発/許可獲得),
-16.WhyDon'tYouYesBut(二者/助言存在必須/助言拒否反復/優位維持),
-17.Let'sYouAndHimFight(三者/対立誘導/傍観利益),
-18.Perversion(二者/混乱誘発/関係撹乱),
-19.Rapo(二者/誘惑→拒絶劇化/感情操作),
-20.StockingGame(個人/注目獲得/誘惑維持),
-21.Uproar(複数者/非助言型/論点拡散/感情エスカレーション),
-22.CopsAndRobbers(二者/捕獲スリル/追跡ゲーム),
-23.HowDoYouGetOut(二者/出口不存在/関係閉塞),
-24.FastOneOnJoey(複数者/共謀/出し抜き操作),
-25.Greenhouse(二者/理屈優位/感情封殺),
-26.ImOnlyTryingToHelp(二者/介入行為/無力化/助言強制),
-27.Indigence(個人/依存/無力化正当化),
-28.Peasant(二者/無知偽装/操作獲得),
-29.Psychiatry(二者/専門語操作/固定化拒絶),
-30.Stupid(個人/無能演出/責任回避),
-31.WoodenLeg(個人/制約免責/正当化),
-32.BusmansHoliday(個人/役割侵食/休息不能),
-33.Cavalier(個人/軽視回避/関与拒否),
-34.HappyToHelp(二者/過剰支援/優位確保),
-35.HomelySage(二者/教示支配/知的優位),
-36.TheyllBeGladTheyKnewMe(個人/未来正当化/報復期待)
+game_ontology = {
+"STRUCTURE": {
+"IND": "Individual（単独主体・個人内プロセス）",
+"DYA": "Dyadic（二者関係・対人相互作用）",
+"TRI": "Triadic（三者関係・仲介・対立誘導）",
+"GRP": "Group（3人以上・集団ダイナミクス）"
+},
+
+"DOMAIN": {
+"DEP": "Dependency（依存・関係維持・支援依存）",
+"CON": "Control/Accusation（捕獲・非難・責任追及）",
+"ESC": "Escape（回避・撤退・関与回避）",
+"ESCAL": "Escalation（感情・論点の拡散・増幅）",
+"INV": "Intervention（助言・介入・救済行為）",
+"CTRL": "Control manipulation（心理的支配・誘導）",
+"DEF": "Defense/Justification（自己正当化・責任回避）",
+"REW": "Reward/Recognition（承認・注目・優位獲得）",
+"OPN": "Closed structure（出口のない関係・閉塞）"
+},
+
+"FLOW": {
+"REP": "Repetition（同構造の反復）",
+"SPIL": "Spillover（拡散・巻き込み）",
+"LOOP": "Feedback loop（循環・助言反復）",
+"LOCK": "Lock-in（固定化・抜け出し不能）",
+"FLIP": "Role flip（被害者↔加害者などの反転）"
+}
+}
+
+game_list = """
+1.Alcoholic = IND + DEP + REP（自己依存と回復の反復）
+2.Debtor = DYA + DEP + LOCK（借り・負債による拘束関係）
+3.KickMe = IND + REW + REP（自虐による注目獲得）
+4.NowI'veGotYou = DYA + CON + LOCK（失敗捕獲と非難固定化）
+5.SeeWhatYouMadeMeDo = DYA + DEF + FLIP（責任転嫁による反転）
+6.Corner = DYA + OPN + LOCK（逃げ道のない関係拘束）
+7.Courtroom = GRP + CON + SPIL（集団裁定と非難拡散）
+8.FrigidWoman = DYA + CTRL + REP（誘惑と拒絶の反復支配）
+9.Harried = IND + ESC + REP（過負荷による回避反復）
+10.IfItWeren'tForYou = DYA + DEF + REP（他者依存正当化）
+11.LookHowHardI'veTried = IND + DEF + LOOP（努力証明の循環）
+12.Sweetheart = DYA + CTRL + FLIP（皮肉称賛と関係操作）
+13.Ain'tItAwful = GRP + REW + SPIL（不満共有と同盟形成）
+14.Blemish = DYA + CON + REP（欠点探索による優位確保）
+15.Schlemiel = DYA + DEF + LOOP（失敗演出と許可獲得）
+16.WhyDon'tYouYesBut = DYA + INV + LOOP（助言提示と拒否反復）
+17.Let'sYouAndHimFight = TRI + CTRL + SPIL（対立誘導と傍観）
+18.Perversion = DYA + CTRL + FLIP（関係混乱と役割反転）
+19.Rapo = DYA + CTRL + FLIP（誘惑と拒絶の劇化）
+20.StockingGame = IND + REW + LOOP（注目獲得の反復行動）
+21.Uproar = GRP + ESCAL + SPIL（集団的拡散と感情増幅）
+22.CopsAndRobbers = DYA + CON + LOOP（捕獲と逃走の反復）
+23.HowDoYouGetOut = DYA + OPN + LOCK（出口のない関係閉塞）
+24.FastOneOnJoey = GRP + CTRL + FLIP（共謀と出し抜き）
+25.Greenhouse = DYA + CTRL + LOCK（理性支配による感情封鎖）
+26.ImOnlyTryingToHelp = DYA + INV + DEF（過剰介入と無力化）
+27.Indigence = IND + DEP + LOCK（無力化による依存固定）
+28.Peasant = DYA + CTRL + DEF（無知偽装による操作）
+29.Psychiatry = DYA + CTRL + LOCK（専門語による固定化）
+30.Stupid = IND + DEF + REP（無能演出と責任回避）
+31.WoodenLeg = IND + DEF + LOCK（制約を理由にした免責）
+32.BusmansHoliday = IND + ESC + LOOP（休息不能な役割侵食）
+33.Cavalier = IND + ESC + REP（軽薄による関与回避）
+34.HappyToHelp = DYA + INV + REW（支援による優位獲得）
+35.HomelySage = DYA + CTRL + REW（教示による支配優位）
+36.TheyllBeGladTheyKnewMe = IND + DEF + FLIP（未来正当化と報復想像）
 """
             mode_instruction = f"""
 【追加制約】
