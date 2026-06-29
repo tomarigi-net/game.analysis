@@ -5,7 +5,7 @@ import re
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
-app = Flask(**name**)
+app = Flask(__name__)
 CORS(app)
 
 @app.route('/', methods=['GET', 'POST'])
@@ -89,6 +89,6 @@ except Exception as e:
     return jsonify({"error": str(e)}), 500
 ````
 
-if **name** == "**main**":
+if __name__ == "__main__":
 port = int(os.environ.get("PORT", 10000))
 app.run(host="0.0.0.0", port=port)
