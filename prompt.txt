@@ -14,33 +14,39 @@
 4. 【counseling項目】: 徹底的に受容的で温かい言葉をかけること。ゲームを「これまで自分を守るために編み出した生存戦略」と認め、本人の長所を肯定して締めること。
 
 【出力JSONキー仕様】
-以下のキー構造を厳守して出力してください。
-{
-  "subject_name": "自分に当たる人物の呼称",
-  "target_name": "相手に当たる人物の呼称",
-  "game_name": "心理ゲームの名称",
-  "english_name": "心理ゲームの原典英語名",
-  "probability": 70,
-  "reason_for_prob": "なぜこのゲームだと判定したかの根拠（入力文の引用含む）",
-  "definition": "ゲームの事典的解説（100文字程度）",
-  "scenario": "客観的なやり取りの要約",
-  "position_start": {
-    "self": "開始時の自分の状態(I'm OK または I'm not OK)",
-    "others": "開始時の相手の状態(You're OK または You're not OK)",
-    "description": "開始時の心理状態の解説"
+必ず以下のキー構造を持つオブジェクトを「2つ」含んだ、JSON配列形式 [ {...}, {...} ] で出力してください。
+[
+  {
+    "subject_name": "自分に当たる人物の呼称",
+    "target_name": "相手に当たる人物の呼称",
+    "game_name": "心理ゲームの名称",
+    "english_name": "心理ゲームの原典英語名",
+    "probability": 70,
+    "reason_for_prob": "なぜこのゲームだと判定したかの根拠（入力文の引用含む）",
+    "definition": "ゲームの事典的解説（100文字程度）",
+    "scenario": "客観的なやり取りの要約",
+    "position_start": {
+      "self": "I'm OK または I'm not OK",
+      "others": "You're OK または You're not OK",
+      "description": "開始時の心理状態の解説"
+    },
+    "position_end": {
+      "self": "I'm OK または I'm not OK",
+      "others": "You're OK または You're not OK",
+      "description": "結末の心理状態の解説"
+    },
+    "prediction": "このまま進んだ場合の人間関係や社会的代償の予測",
+    "hidden_motive": "このゲームによって無意識に得ている利得",
+    "advice": "ゲームを降りるための具体的な対応策",
+    "counseling": {
+      "message": "300文字程度のカウンセリング・メッセージ。最後は『今のままでも、あなたは十分に価値があります』の一文で締めること。"
+    }
   },
-  "position_end": {
-    "self": "結末の自分の状態(I'm OK または I'm not OK)",
-    "others": "結末の相手の状態(You're OK または You're not OK)",
-    "description": "結末の心理状態の解説"
-  },
-  "prediction": "このまま進んだ場合の人間関係や社会的代償の予測",
-  "hidden_motive": "このゲームによって無意識に得ている利得",
-  "advice": "ゲームを降りるための具体的な対応策",
-  "counseling": {
-    "message": "300文字程度のカウンセリング・メッセージ。最後は『今のままでも、あなたは十分に価値があります』の一文で締めること。"
+  {
+    "subject_name": "（第2候補の呼称）",
+    "...(上記と同様の構造で、別の視点・解釈による候補を出力)": "..."
   }
-}
+]
 
 【出力形式】
-JSON形式のみを出力してください。Markdownのコードブロック（```json）や導入文、補足説明は一切含めず、必ず { から始まる純粋なJSONデータのみを出力してください。
+Markdownのコードブロック（```json）や導入文、補足説明は一切含めず、必ず [ から始まる純粋なJSON配列データのみを出力してください。
